@@ -746,6 +746,34 @@ Func CanUse_AncestorsRage()
 EndFunc
 
 Func BestTarget_AncestorsRage($a_f_AggroRange)
+	Local $l_i_BestAlly = 0
+	Local $l_i_BestEnemyCount = 0
+
+	For $i = 1 To $g_i_AgentCacheCount
+		Local $l_i_AgentID = UAI_GetAgentInfo($i, $GC_UAI_AGENT_ID)
+
+		; Must be living ally
+		If Not UAI_Filter_IsLivingAlly($l_i_AgentID) Then ContinueLoop
+
+		; Cannot target spirits
+		If UAI_Filter_IsSpirit($l_i_AgentID) Then ContinueLoop
+
+		; Check distance from player
+		Local $l_f_Distance = UAI_GetAgentInfo($i, $GC_UAI_AGENT_Distance)
+		If $l_f_Distance > $a_f_AggroRange Then ContinueLoop
+
+		; Count adjacent enemies around this ally
+		Local $l_i_EnemyCount = UAI_CountAgents($l_i_AgentID, $GC_I_RANGE_ADJACENT, "UAI_Filter_IsLivingEnemy")
+
+		If $l_i_EnemyCount > $l_i_BestEnemyCount Then
+			$l_i_BestEnemyCount = $l_i_EnemyCount
+			$l_i_BestAlly = $l_i_AgentID
+		EndIf
+	Next
+
+	; Require at least 1 adjacent enemy to make the skill worthwhile
+	If $l_i_BestEnemyCount >= 1 Then Return $l_i_BestAlly
+
 	Return 0
 EndFunc
 

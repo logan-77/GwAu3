@@ -50,9 +50,9 @@ Func BestTarget_BaneSignet($a_f_AggroRange)
 	; Concise description
 	; Signet. Deals 26...50...56 holy damage. Causes knock-down if target foe is attacking.
 	; Prefer attacking enemies for knockdown effect
-	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsAttacking")
+	Local $l_i_Target = UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsAttacking")
 	If $l_i_Target <> 0 Then Return $l_i_Target
-	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 Func CanUse_BarbedSignet()
@@ -126,7 +126,9 @@ Func BestTarget_CastigationSignet($a_f_AggroRange)
 	; This article is about the Eye of the North skill. For the temporarily available Bonus Mission Pack skill, see Castigation Signet (Saul D'Alessio).
 	; Concise description
 	; green; font-weight: bold;">26...50...56
-	Return 0
+	Local $l_i_Target = UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsAttacking")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 Func CanUse_CastigationSignetSaulDalessio()
@@ -639,7 +641,7 @@ Func BestTarget_SignetOfJudgment($a_f_AggroRange)
 	; Elite Signet. Target foe is knocked down. That foe and all adjacent foes take 15...63...75 holy damage.
 	; Concise description
 	; Elite Signet. Knocks down target. Deals 15...63...75 holy damage to target and adjacent foes.
-	Return 0
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 Func CanUse_SignetOfJudgmentPvp()

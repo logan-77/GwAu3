@@ -2,7 +2,7 @@
 
 ; Script Start - Add your code below here
 Func Cache_SkillBar()
-	If Map_GetInstanceInfo("Type") = 2 Then Return
+	If Map_GetInstanceInfo("IsLoading") Then Return
 
 	UAI_CacheSkillBar()
 
