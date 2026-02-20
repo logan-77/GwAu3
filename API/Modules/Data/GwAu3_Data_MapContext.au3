@@ -764,8 +764,8 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 					Local $l_ai_Coords[2] = [12828, 14344]
 				Case $GC_I_MAP_ID_MAGUUMA_STADE
 					Local $l_ai_Coords[2] = [929, -10479]
-				Case $GC_I_MAP_ID_RIVERSIDE_PROVINCE_OUTPOST
-					Local $l_ai_Coords[2] = [18267, -12079]
+;~ 				Case $GC_I_MAP_ID_RIVERSIDE_PROVINCE_OUTPOST
+;~ 					Local $l_ai_Coords[2] = [18267, -12079]
 			EndSwitch
 
 		Case $GC_I_MAP_ID_HENGE_OF_DENRAVI
@@ -1041,7 +1041,7 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 		Case $GC_I_MAP_ID_REGENT_VALLEY
 			Switch $a_i_ToMapID
 				Case $GC_I_MAP_ID_FORT_RANIK_OUTPOST
-					Local $l_ai_Coords[2] = [22535, 7584]
+					Local $l_ai_Coords[2] = [22564, 7261]
 				Case $GC_I_MAP_ID_OLD_ASCALON
 					Local $l_ai_Coords[2] = [-17197, 17034]
 				Case $GC_I_MAP_ID_POCKMARK_FLATS
@@ -3228,7 +3228,7 @@ Func Map_GetConnectedMaps($a_i_MapID)
 		Case $GC_I_MAP_ID_DRY_TOP
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_ETTINS_BACK, $GC_I_MAP_ID_TANGLE_ROOT]
 		Case $GC_I_MAP_ID_TANGLE_ROOT
-			Local $l_a_Connected[] = [$GC_I_MAP_ID_DRY_TOP, $GC_I_MAP_ID_HENGE_OF_DENRAVI, $GC_I_MAP_ID_MAGUUMA_STADE, $GC_I_MAP_ID_RIVERSIDE_PROVINCE_OUTPOST]
+			Local $l_a_Connected[] = [$GC_I_MAP_ID_DRY_TOP, $GC_I_MAP_ID_HENGE_OF_DENRAVI, $GC_I_MAP_ID_MAGUUMA_STADE];, $GC_I_MAP_ID_RIVERSIDE_PROVINCE_OUTPOST]
 
 			; === Prophecies - Crystal Desert ===
 		Case $GC_I_MAP_ID_AUGURY_ROCK_OUTPOST
