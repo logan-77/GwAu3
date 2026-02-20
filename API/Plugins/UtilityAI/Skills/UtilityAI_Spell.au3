@@ -1303,11 +1303,11 @@ Func BestTarget_Banish($a_f_AggroRange)
 	; Concise description
 	; Spell. Deals 20...49...56 holy damage. Deals double damage to summoned creatures.
 	; Prefer summoned creatures (minions, spirits) for double damage
-	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsMinion")
+	Local $l_i_Target = UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsMinion")
 	If $l_i_Target <> 0 Then Return $l_i_Target
-	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsSpirit")
+	$l_i_Target = UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsSpirit")
 	If $l_i_Target <> 0 Then Return $l_i_Target
-	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 275 - $GC_I_SKILL_ID_MEND_CONDITION
@@ -2198,6 +2198,8 @@ Func BestTarget_Discord($a_f_AggroRange)
 	; Elite Spell. If target foe is suffering from a condition and under the effects of a hex or an enchantment, that foe suffers 30...94...110 damage.
 	; Concise description
 	; Elite Spell. Deals 30...94...110 damage. No effect unless target foe has a condition and is either hexed or enchanted.
+	$l_i_Target = UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsHexedOrEnchanted|UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 Then Return $l_i_Target
 	Return 0
 EndFunc
 
@@ -2588,7 +2590,7 @@ Func BestTarget_SpiritBurn($a_f_AggroRange)
 	; This article is about the Factions skill. For the temporarily available Bonus Mission Pack skill, see Spirit Burn (Togo).
 	; Concise description
 	; green; font-weight: bold;">5...41...50
-	Return 0
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 931 - $GC_I_SKILL_ID_POWER_RETURN
@@ -3735,7 +3737,7 @@ Func BestTarget_EssenceStrike($a_f_AggroRange)
 	; This article is about the Factions skill. For the temporarily available Bonus Mission Pack skill, see Essence Strike (Togo).
 	; Concise description
 	; green; font-weight: bold;">15...51...60
-	Return UAI_GetBestSingleTarget(-2, 1320, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1228 - $GC_I_SKILL_ID_SPIRIT_SIPHON
