@@ -404,7 +404,7 @@ Func BestTarget_ParasiticBond($a_f_AggroRange)
 	; Hex Spell. (20 seconds.) Causes -1 Health degeneration. End effect: you are healed for 30...102...120 Health.
 	; Concise description
 	; Spell. (20 seconds.) Causes -1 Health degeneration. End effect: you are healed for 30...102...120 Health.
-	Return 0
+	Return UAI_GetBestSingleTarget(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|-UAI_Filter_IsHexed")
 EndFunc
 
 ; Skill ID: 100 - $GC_I_SKILL_ID_SOUL_BARBS
