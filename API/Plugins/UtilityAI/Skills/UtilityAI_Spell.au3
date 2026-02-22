@@ -1513,7 +1513,7 @@ Func BestTarget_RemoveHex($a_f_AggroRange)
 	; Spell. Remove a hex from target ally.
 	; Concise description
 	; Spell. Removes a hex from target ally.
-	Return 0
+	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsHexed")
 EndFunc
 
 ; Skill ID: 302 - $GC_I_SKILL_ID_SMITE_HEX
@@ -2544,6 +2544,10 @@ EndFunc
 ; Skill ID: 915 - $GC_I_SKILL_ID_SPIRIT_LIGHT
 Func CanUse_SpiritLight()
 	If Anti_Spell() Then Return False
+	Local $l_i_SpiritCount = UAI_CountAgents(-2, $GC_I_RANGE_EARSHOT, "UAI_Filter_IsSpirit")
+	Local $l_i_HP = UAI_GetAgentInfoByID(-2, $GC_UAI_AGENT_HP)
+
+	If $l_i_SpiritCount <= 0 Or $l_i_HP < 0.9 Then Return False
 	Return True
 EndFunc
 
@@ -2552,6 +2556,9 @@ Func BestTarget_SpiritLight($a_f_AggroRange)
 	; Spell. Target ally is healed for 60...156...180. If any spirits are within earshot, you don't sacrifice Health.
 	; Concise description
 	; Spell. Heals for 60...156...180. You don't sacrifice Health if you are within earshot of any spirits.
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.75 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -2806,6 +2813,9 @@ EndFunc
 ; Skill ID: 962 - $GC_I_SKILL_ID_SPIRIT_TRANSFER
 Func CanUse_SpiritTransfer()
 	If Anti_Spell() Then Return False
+	Local $l_i_SpiritCount = UAI_CountAgents(-2, $GC_I_RANGE_EARSHOT, "UAI_Filter_IsSpirit")
+
+	If $l_i_SpiritCount <= 0 Or Then Return False
 	Return True
 EndFunc
 
@@ -2814,6 +2824,9 @@ Func BestTarget_SpiritTransfer($a_f_AggroRange)
 	; Spell. The spirit nearest you loses 5...41...50 Health. Target ally is healed for 5 for each point of Health lost.
 	; Concise description
 	; Spell. The spirit nearest you loses 5...41...50 Health. Heals target ally for 5 for each point of Health lost.
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.5 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -3779,6 +3792,13 @@ Func BestTarget_MendBodyAndSoul($a_f_AggroRange)
 	; This article is about the Factions skill. For the temporarily available Bonus Mission Pack skill, see Mend Body and Soul (Togo).
 	; Concise description
 	; green; font-weight: bold;">20...96...115
+	Local $l_i_SpiritCount = UAI_CountAgents(-2, $GC_I_RANGE_EARSHOT, "UAI_Filter_IsSpirit")
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 And $l_i_SpiritCount >= 1 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.75 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -4962,7 +4982,7 @@ Func BestTarget_CureHex($a_f_AggroRange)
 	; Spell. Remove one Hex from target ally. If a Hex was removed, that ally is healed for 30...102...120 Health.
 	; Concise description
 	; Spell. Removes a Hex. Removal effect: Heals for 30...102...120.
-	Return 0
+	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsHexed")
 EndFunc
 
 ; Skill ID: 2004 - $GC_I_SKILL_ID_SMITE_CONDITION
