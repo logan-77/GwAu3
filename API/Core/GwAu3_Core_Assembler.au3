@@ -1,6 +1,6 @@
 #include-once
 
-Func Assemlber_Reg32Code($a_s_Reg)
+Func Assembler_Reg32Code($a_s_Reg)
     Switch $a_s_Reg
         Case "eax"
 			Return 0
@@ -22,7 +22,7 @@ Func Assemlber_Reg32Code($a_s_Reg)
     Return SetError(1, 0, -1)
 EndFunc
 
-Func Assemlber_Reg16Code($a_s_Reg)
+Func Assembler_Reg16Code($a_s_Reg)
     Switch $a_s_Reg
         Case "ax"
 			Return 0
@@ -44,7 +44,7 @@ Func Assemlber_Reg16Code($a_s_Reg)
     Return SetError(1, 0, -1)
 EndFunc
 
-Func Assemlber_Reg8Code($a_s_Reg)
+Func Assembler_Reg8Code($a_s_Reg)
     Switch $a_s_Reg
         Case "al"
 			Return 0
@@ -872,28 +872,28 @@ Func _($a_s_ASM)
 			EndIf
 		Case StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$', 1)
-            Local $l_i_Dst = Assemlber_Reg32Code($l_as_M[0])
-            Local $l_i_Src = Assemlber_Reg32Code($l_as_M[1])
+            Local $l_i_Dst = Assembler_Reg32Code($l_as_M[0])
+            Local $l_i_Src = Assembler_Reg32Code($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
             $g_i_ASMSize += 2
             $g_s_ASMCode &= '01' & Hex($l_i_ModRM, 2)
 		Case StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$', 1)
-            Local $l_i_Dst = Assemlber_Reg16Code($l_as_M[0])
-            Local $l_i_Src = Assemlber_Reg16Code($l_as_M[1])
+            Local $l_i_Dst = Assembler_Reg16Code($l_as_M[0])
+            Local $l_i_Src = Assembler_Reg16Code($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
             $g_i_ASMSize += 3
             $g_s_ASMCode &= '66' & '01' & Hex($l_i_ModRM, 2)
 		Case StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$', 1)
-            Local $l_i_Dst = Assemlber_Reg8Code($l_as_M[0])
-            Local $l_i_Src = Assemlber_Reg8Code($l_as_M[1])
+            Local $l_i_Dst = Assembler_Reg8Code($l_as_M[0])
+            Local $l_i_Src = Assembler_Reg8Code($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
             $g_i_ASMSize += 2
             $g_s_ASMCode &= '00' & Hex($l_i_ModRM, 2)
 		Case StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$', 1)
-            Local $l_i_Reg = Assemlber_Reg32Code($l_as_M[0])
+            Local $l_i_Reg = Assembler_Reg32Code($l_as_M[0])
             Local $l_i_Imm = Dec($l_as_M[1])
             If $l_i_Imm <= 0x7F Then
                 Local $l_i_ModRM = 0xC0 + $l_i_Reg
@@ -906,7 +906,7 @@ Func _($a_s_ASM)
             EndIf
 		Case StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$', 1)
-            Local $l_i_Reg = Assemlber_Reg16Code($l_as_M[0])
+            Local $l_i_Reg = Assembler_Reg16Code($l_as_M[0])
             Local $l_i_Imm = Dec($l_as_M[1])
             If $l_i_Imm <= 0x7F Then
                 Local $l_i_ModRM = 0xC0 + $l_i_Reg
@@ -919,35 +919,35 @@ Func _($a_s_ASM)
             EndIf
 		Case StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$', 1)
-            Local $l_i_Reg = Assemlber_Reg8Code($l_as_M[0])
+            Local $l_i_Reg = Assembler_Reg8Code($l_as_M[0])
             Local $l_i_Imm = Dec($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + $l_i_Reg
             $g_i_ASMSize += 3
             $g_s_ASMCode &= '80' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
         Case StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$', 1)
-            Local $l_i_Dst = Assemlber_Reg32Code($l_as_M[0])
-            Local $l_i_Src = Assemlber_Reg32Code($l_as_M[1])
+            Local $l_i_Dst = Assembler_Reg32Code($l_as_M[0])
+            Local $l_i_Src = Assembler_Reg32Code($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
             $g_i_ASMSize += 2
             $g_s_ASMCode &= '29' & Hex($l_i_ModRM, 2)
         Case StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$', 1)
-            Local $l_i_Dst = Assemlber_Reg16Code($l_as_M[0])
-            Local $l_i_Src = Assemlber_Reg16Code($l_as_M[1])
+            Local $l_i_Dst = Assembler_Reg16Code($l_as_M[0])
+            Local $l_i_Src = Assembler_Reg16Code($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
             $g_i_ASMSize += 3
             $g_s_ASMCode &= '66' & '29' & Hex($l_i_ModRM, 2)
         Case StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$', 1)
-            Local $l_i_Dst = Assemlber_Reg8Code($l_as_M[0])
-            Local $l_i_Src = Assemlber_Reg8Code($l_as_M[1])
+            Local $l_i_Dst = Assembler_Reg8Code($l_as_M[0])
+            Local $l_i_Src = Assembler_Reg8Code($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
             $g_i_ASMSize += 2
             $g_s_ASMCode &= '28' & Hex($l_i_ModRM, 2)
         Case StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$', 1)
-            Local $l_i_Reg = Assemlber_Reg32Code($l_as_M[0])
+            Local $l_i_Reg = Assembler_Reg32Code($l_as_M[0])
             Local $l_i_Imm = Dec($l_as_M[1])
             If $l_i_Imm <= 0x7F Then
                 Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
@@ -960,7 +960,7 @@ Func _($a_s_ASM)
             EndIf
         Case StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$', 1)
-            Local $l_i_Reg = Assemlber_Reg16Code($l_as_M[0])
+            Local $l_i_Reg = Assembler_Reg16Code($l_as_M[0])
             Local $l_i_Imm = Dec($l_as_M[1])
             If $l_i_Imm <= 0x7F Then
                 Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
@@ -973,7 +973,7 @@ Func _($a_s_ASM)
             EndIf
         Case StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$')
             Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$', 1)
-            Local $l_i_Reg = Assemlber_Reg8Code($l_as_M[0])
+            Local $l_i_Reg = Assembler_Reg8Code($l_as_M[0])
             Local $l_i_Imm = Dec($l_as_M[1])
             Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
             $g_i_ASMSize += 3
