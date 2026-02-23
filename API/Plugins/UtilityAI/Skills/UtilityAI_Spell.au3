@@ -1321,6 +1321,9 @@ Func BestTarget_MendCondition($a_f_AggroRange)
 	; Spell. Remove one condition (Poison, Disease, Blindness, Dazed, Bleeding, Crippled, Burning, Weakness, Cracked Armor, or Deep Wound) from target other ally. If a condition is removed, that ally is healed for 5...57...70 Health.
 	; Concise description
 	; Spell. Removes one condition. Removal effect: heals for 5...57...70. Cannot self-target.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_ExcludeMe|UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -1335,6 +1338,9 @@ Func BestTarget_RestoreCondition($a_f_AggroRange)
 	; Elite Spell. Remove all conditions (Poison, Disease, Blindness, Dazed, Bleeding, Crippled, Burning, Weakness, Cracked Armor, and Deep Wound) from target other ally. For each condition removed, that ally is healed for 10...58...70 Health.
 	; Concise description
 	; Elite Spell. Removes all conditions. Removal effect: heals for 10...58...70 for each condition removed. Cannot self-target.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_ExcludeMe|UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -1420,6 +1426,11 @@ Func BestTarget_WordOfHealing($a_f_AggroRange)
 	; Elite Spell. Heal target ally for 5...81...100 Health. Heal for an additional 30...98...115 Health if that ally is below 50% Health.
 	; Concise description
 	; Elite Spell. Heals for 5...81...100. Heals for 30...98...115 more if target ally is below 50% Health.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	Local $l_f_Hp = UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP)
+	If $l_i_Target <> 0 And $l_f_Hp < 0.5 Then Return $l_i_Target
+	If $l_i_Target <> 0 And ($l_f_Hp > 0.7 And $l_f_Hp < 0.9) Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -1485,6 +1496,9 @@ Func BestTarget_InfuseHealth($a_f_AggroRange)
 	; Spell. Lose half your current Health. Target other ally is healed for 100...129...136% of the amount you lost.
 	; Concise description
 	; Spell. Heals for 100...129...136% of half your current Health. Lose half your current Health. Cannot self-target.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_ExcludeMe")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.1 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -2448,6 +2462,12 @@ Func BestTarget_HealingLight($a_f_AggroRange)
 	; Elite Spell. Heal target ally for 40...88...100 Health. If your target has an enchantment, you gain 1...3...3 Energy.
 	; Concise description
 	; Elite Spell. Heals for 40...88...100. You gain 1...3...3 Energy if target ally is enchanted.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsEnchanted")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.9 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.8 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -2695,6 +2715,18 @@ Func BestTarget_BlessedLight($a_f_AggroRange)
 	; Elite Spell. Heal target ally for 10...114...140 Health and remove one condition and one hex.
 	; Concise description
 	; Elite Spell. Heals for 10...114...140. Removes one condition and one hex.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsConditioned|UAI_Filter_IsHexed")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsHexed")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.9 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.9 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.7 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -2815,7 +2847,7 @@ Func CanUse_SpiritTransfer()
 	If Anti_Spell() Then Return False
 	Local $l_i_SpiritCount = UAI_CountAgents(-2, $GC_I_RANGE_EARSHOT, "UAI_Filter_IsSpirit")
 
-	If $l_i_SpiritCount <= 0 Or Then Return False
+	If $l_i_SpiritCount <= 0 Then Return False
 	Return True
 EndFunc
 
@@ -3511,6 +3543,9 @@ Func BestTarget_HealingBurst($a_f_AggroRange)
 	; Elite Spell. Target ally is healed for 10...130...160. All party members in earshot of your target gain Health equal to the Divine Favor bonus from this spell. Your Smiting Prayers are disabled for 20 seconds.
 	; Concise description
 	; Elite Spell. Heals for 10...130...160. Party members in earshot of your target gain Health equal to the Divine Favor bonus. Disables your Smiting Prayers (20 seconds).
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.75 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -3545,6 +3580,9 @@ Func BestTarget_GiftOfHealth($a_f_AggroRange)
 	; Spell. All of your other Healing Prayers skills are disabled for 10...6...5 seconds. Target other ally is healed for 15...123...150 Health.
 	; Concise description
 	; Spell. Heals for 15...123...150. Disables your other Healing Prayers skills (10...6...5 seconds). Cannot self-target.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_ExcludeMe")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.75 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -4756,6 +4794,10 @@ Func BestTarget_ZealousBenediction($a_f_AggroRange)
 	; Elite Spell. Heal target ally for 30...150...180 Health. If target was below 50% Health, you gain 7 Energy.
 	; Concise description
 	; Elite Spell. Heals for 30...150...180. You gain 7 Energy if target ally was below 50% Health.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly")
+	Local $l_f_Hp = UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP)
+	If $l_i_Target <> 0 And $l_f_Hp < 0.5 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -4814,6 +4856,9 @@ EndFunc
 ; Skill ID: 1741 - $GC_I_SKILL_ID_GHOSTMIRROR_LIGHT
 Func CanUse_GhostmirrorLight()
 	If Anti_Spell() Then Return False
+	Local $l_i_SpiritCount = UAI_CountAgents(-2, $GC_I_RANGE_EARSHOT, "UAI_Filter_IsSpirit")
+
+	If $l_i_SpiritCount <= 0 Then Return False
 	Return True
 EndFunc
 
@@ -4822,6 +4867,9 @@ Func BestTarget_GhostmirrorLight($a_f_AggroRange)
 	; Spell. Target other ally is healed for 15...75...90 Health. If you are within earshot of a spirit, you are also healed for 15...75...90 Health.
 	; Concise description
 	; Spell. Heals for 15...75...90. You gain 15...75...90 Health if you are within earshot of a spirit. Cannot self-target.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_ExcludeMe")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.8 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
