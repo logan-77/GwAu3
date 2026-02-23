@@ -1,34 +1,69 @@
 #include-once
 
-Global $g_a_Reg8[8][2] = [['al',0], ['cl',1], ['dl',2], ['bl',3], ['ah',4], ['ch',5], ['dh',6], ['bh',7]]
-Global $g_a_Reg16[8][2] = [['ax',0], ['cx',1], ['dx',2], ['bx',3], ['sp',4], ['bp',5], ['si',6], ['di',7]]
-Global $g_a_Reg32[8][2] = [['eax',0], ['ecx',1], ['edx',2], ['ebx',3], ['esp',4], ['ebp',5], ['esi',6], ['edi',7]]
-
-Func _GetReg32Code($s_RegName)
-    For $i = 0 To 7
-        If $g_a_Reg32[$i][0] = $s_RegName Then
-            Return $g_a_Reg32[$i][1]
-        EndIf
-    Next
-    Return -1
+Func Assemlber_Reg32Code($a_s_Reg)
+    Switch $a_s_Reg
+        Case "eax"
+			Return 0
+        Case "ecx"
+			Return 1
+        Case "edx"
+			Return 2
+        Case "ebx"
+			Return 3
+        Case "esp"
+			Return 4
+        Case "ebp"
+			Return 5
+        Case "esi"
+			Return 6
+        Case "edi"
+			Return 7
+    EndSwitch
+    Return SetError(1, 0, -1)
 EndFunc
 
-Func _GetReg16Code($s_RegName)
-    For $i = 0 To 7
-        If $g_a_Reg16[$i][0] = $s_RegName Then
-            Return $g_a_Reg16[$i][1]
-        EndIf
-    Next
-    Return -1
+Func Assemlber_Reg16Code($a_s_Reg)
+    Switch $a_s_Reg
+        Case "ax"
+			Return 0
+        Case "cx"
+			Return 1
+        Case "dx"
+			Return 2
+        Case "bx"
+			Return 3
+        Case "sp"
+			Return 4
+        Case "bp"
+			Return 5
+        Case "si"
+			Return 6
+        Case "di"
+			Return 7
+    EndSwitch
+    Return SetError(1, 0, -1)
 EndFunc
 
-Func _GetReg8Code($s_RegName)
-    For $i = 0 To 7
-        If $g_a_Reg8[$i][0] = $s_RegName Then
-            Return $g_a_Reg8[$i][1]
-        EndIf
-    Next
-    Return -1
+Func Assemlber_Reg8Code($a_s_Reg)
+    Switch $a_s_Reg
+        Case "al"
+			Return 0
+        Case "cl"
+			Return 1
+        Case "dl"
+			Return 2
+        Case "bl"
+			Return 3
+        Case "ah"
+			Return 4
+        Case "ch"
+			Return 5
+        Case "dh"
+			Return 6
+        Case "bh"
+			Return 7
+    EndSwitch
+    Return SetError(1, 0, -1)
 EndFunc
 
 Func _NormalizeHexValue($s_Value)
@@ -120,7 +155,6 @@ Func _($a_s_ASM)
 		Case StringLeft($a_s_ASM, 4) = 'jle '
 			$g_i_ASMSize += 2
 			$g_s_ASMCode &= '7E(' & StringRight($a_s_ASM, StringLen($a_s_ASM) - 4) & ')'
-
 		Case StringRegExp($a_s_ASM, 'call dword[[][a-z,A-Z]{4,}[]]')
 			$g_i_ASMSize += 6
 			$g_s_ASMCode &= 'FF15[' & StringMid($a_s_ASM, 12, StringLen($a_s_ASM) - 12) & ']'
@@ -130,13 +164,8 @@ Func _($a_s_ASM)
 		Case StringRegExp($a_s_ASM, 'fstp dword[[][a-z,A-Z]{4,}[]]')
 			$g_i_ASMSize += 6
 			$g_s_ASMCode &= 'D91D[' & StringMid($a_s_ASM, 12, StringLen($a_s_ASM) - 12) & ']'
-		Case StringRegExp($a_s_ASM, 'retn [0-9A-Fa-f]+h')
+		Case StringRegExp($a_s_ASM, 'retn [0-9A-Fa-f]+')
 			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'retn ([0-9A-Fa-f]+)h', '$1')
-			$l_i_Value = Dec($l_i_Value)
-			$g_i_ASMSize += 3
-			$g_s_ASMCode &= 'C2' & Utils_SwapEndian(Hex($l_i_Value, 4))
-		Case StringRegExp($a_s_ASM, 'retn 0x[0-9A-Fa-f]+')
-			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'retn 0x([0-9A-Fa-f]+)', '$1')
 			$l_i_Value = Dec($l_i_Value)
 			$g_i_ASMSize += 3
 			$g_s_ASMCode &= 'C2' & Utils_SwapEndian(Hex($l_i_Value, 4))
@@ -199,49 +228,10 @@ Func _($a_s_ASM)
 		Case StringRegExp($a_s_ASM, 'cmp eax,[a-z,A-Z]{4,}') And StringInStr($a_s_ASM, ',dword') = 0
 			$g_i_ASMSize += 5
 			$g_s_ASMCode &= '3D[' & StringRight($a_s_ASM, StringLen($a_s_ASM) - 8) & ']'
-		Case StringRegExp($a_s_ASM, 'cmp ebx,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83FB' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81FB' & $l_v_Buffer
-			EndIf
 		Case StringLeft($a_s_ASM, 8) = 'cmp ecx,' And StringLen($a_s_ASM) > 10
 			Local $l_s_OpCode = '81F9' & StringMid($a_s_ASM, 9)
 			$g_i_ASMSize += 0.5 * StringLen($l_s_OpCode)
 			$g_s_ASMCode &= $l_s_OpCode
-		Case StringRegExp($a_s_ASM, 'add esp,0x[0-9A-Fa-f]+')
-			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'add esp,0x([0-9A-Fa-f]+)', '$1')
-			$l_i_Value = Dec($l_i_Value)
-			If $l_i_Value <= 0x7F Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C4' & Hex($l_i_Value, 2)
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C4' & Utils_SwapEndian(Hex($l_i_Value, 8))
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add eax,[0-9A-Fa-f]+h')
-			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'add eax,([0-9A-Fa-f]+)h', '$1')
-			$l_i_Value = Dec($l_i_Value)
-			If $l_i_Value <= 0x7F Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C0' & Hex($l_i_Value, 2)
-			Else
-				$g_i_ASMSize += 5
-				$g_s_ASMCode &= '05' & Utils_SwapEndian(Hex($l_i_Value, 8))
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add ebx,[0-9A-Fa-f]+h')
-			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'add ebx,([0-9A-Fa-f]+)h', '$1')
-			$l_i_Value = Dec($l_i_Value)
-			If $l_i_Value <= 0x7F Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C3' & Hex($l_i_Value, 2)
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C3' & Utils_SwapEndian(Hex($l_i_Value, 8))
-			EndIf
 		Case StringRegExp($a_s_ASM, 'add ebx,dword\[[a-zA-Z_][a-zA-Z0-9_]*\]')
 		   Local $l_s_Label = StringRegExpReplace($a_s_ASM, 'add ebx,dword\[([a-zA-Z_][a-zA-Z0-9_]*)\]', '$1')
 		   $g_i_ASMSize += 6
@@ -250,89 +240,6 @@ Func _($a_s_ASM)
 		   Local $l_s_Label = StringRegExpReplace($a_s_ASM, 'add eax,dword\[([a-zA-Z_][a-zA-Z0-9_]*)\]', '$1')
 		   $g_i_ASMSize += 5
 		   $g_s_ASMCode &= '0305[' & $l_s_Label & ']'
-		Case StringRegExp($a_s_ASM, 'add ecx,[0-9A-Fa-f]+h')
-			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'add ecx,([0-9A-Fa-f]+)h', '$1')
-			$l_i_Value = Dec($l_i_Value)
-			If $l_i_Value <= 0x7F Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C1' & Hex($l_i_Value, 2)
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C1' & Utils_SwapEndian(Hex($l_i_Value, 8))
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add edx,[0-9A-Fa-f]+h')
-			Local $l_i_Value = StringRegExpReplace($a_s_ASM, 'add edx,([0-9A-Fa-f]+)h', '$1')
-			$l_i_Value = Dec($l_i_Value)
-			If $l_i_Value <= 0x7F Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C2' & Hex($l_i_Value, 2)
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C2' & Utils_SwapEndian(Hex($l_i_Value, 8))
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add eax,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C0' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 5
-				$g_s_ASMCode &= '05' & $l_v_Buffer
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add ebx,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C3' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C3' & $l_v_Buffer
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add ecx,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C1' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C1' & $l_v_Buffer
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add edx,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C2' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C2' & $l_v_Buffer
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add edi,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C7' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C7' & $l_v_Buffer
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add esi,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C6' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C6' & $l_v_Buffer
-			EndIf
-		Case StringRegExp($a_s_ASM, 'add esp,[-[:xdigit:]]{1,8}\z')
-			$l_v_Buffer = Assembler_ASMNumber(StringMid($a_s_ASM, 9), True)
-			If @extended Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '83C4' & $l_v_Buffer
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '81C4' & $l_v_Buffer
-			EndIf
 		Case StringRegExp($a_s_ASM, 'add eax,[a-z,A-Z]{4,}') And StringInStr($a_s_ASM, ',dword') = 0
 			$g_i_ASMSize += 5
 			$g_s_ASMCode &= '05[' & StringRight($a_s_ASM, StringLen($a_s_ASM) - 8) & ']'
@@ -642,6 +549,16 @@ Func _($a_s_ASM)
 		Case StringRegExp($a_s_ASM, 'mov edi,dword[[][a-z,A-Z]{4,}[]]')
 			$g_i_ASMSize += 6
 			$g_s_ASMCode &= '8B3D[' & StringMid($a_s_ASM, 15, StringLen($a_s_ASM) - 15) & ']'
+		Case StringRegExp($a_s_ASM, 'mov edi,dword\[esi\+[0-9A-Fa-f]+\]')
+            Local $l_i_Offset = StringRegExpReplace($a_s_ASM, 'mov edi,dword\[esi\+([0-9A-Fa-f]+)\]', '$1')
+            $l_i_Offset = Dec($l_i_Offset)
+            If $l_i_Offset <= 0x7F Then
+                $g_i_ASMSize += 3
+                $g_s_ASMCode &= '8B7E' & Hex($l_i_Offset, 2)
+            Else
+                $g_i_ASMSize += 6
+                $g_s_ASMCode &= '8BBE' & Utils_SwapEndian(Hex($l_i_Offset, 8))
+            EndIf
 		Case StringRegExp($a_s_ASM, 'mov eax,[a-z,A-Z]{4,}') And StringInStr($a_s_ASM, ',dword') = 0
 			$g_i_ASMSize += 5
 			$g_s_ASMCode &= 'B8[' & StringRight($a_s_ASM, StringLen($a_s_ASM) - 8) & ']'
@@ -714,6 +631,26 @@ Func _($a_s_ASM)
 				$g_i_ASMSize += 6
 				$g_s_ASMCode &= '8B88' & Utils_SwapEndian(Hex($l_i_Offset, 8))
 			EndIf
+		Case StringRegExp($a_s_ASM, 'mov ecx,dword\[ecx\+[0-9A-Fa-f]+\]')
+			Local $l_i_Offset = StringRegExpReplace($a_s_ASM, 'mov ecx,dword\[ecx\+([0-9A-Fa-f]+)\]', '$1')
+			$l_i_Offset = Dec($l_i_Offset)
+			If $l_i_Offset <= 0x7F Then
+				$g_i_ASMSize += 3
+				$g_s_ASMCode &= '8B49' & Hex($l_i_Offset, 2)
+			Else
+				$g_i_ASMSize += 6
+				$g_s_ASMCode &= '8B89' & Utils_SwapEndian(Hex($l_i_Offset, 8))
+			EndIf
+		Case StringRegExp($a_s_ASM, 'mov ecx,dword\[esi\+[0-9A-Fa-f]+\]')
+            Local $l_i_Offset = StringRegExpReplace($a_s_ASM, 'mov ecx,dword\[esi\+([0-9A-Fa-f]+)\]', '$1')
+            $l_i_Offset = Dec($l_i_Offset)
+            If $l_i_Offset <= 0x7F Then
+                $g_i_ASMSize += 3
+                $g_s_ASMCode &= '8B4E' & Hex($l_i_Offset, 2)
+            Else
+                $g_i_ASMSize += 6
+                $g_s_ASMCode &= '8B8E' & Utils_SwapEndian(Hex($l_i_Offset, 8))
+            EndIf
 		Case StringRegExp($a_s_ASM, 'mov edx,dword\[eax\+[0-9A-Fa-f]+\]')
 			Local $l_i_Offset = StringRegExpReplace($a_s_ASM, 'mov edx,dword\[eax\+([0-9A-Fa-f]+)\]', '$1')
 			$l_i_Offset = Dec($l_i_Offset)
@@ -743,16 +680,6 @@ Func _($a_s_ASM)
 			Else
 				$g_i_ASMSize += 6
 				$g_s_ASMCode &= '8B91' & Utils_SwapEndian(Hex($l_i_Offset, 8))
-			EndIf
-		Case StringRegExp($a_s_ASM, 'mov ecx,dword\[ecx\+[0-9A-Fa-f]+\]')
-			Local $l_i_Offset = StringRegExpReplace($a_s_ASM, 'mov ecx,dword\[ecx\+([0-9A-Fa-f]+)\]', '$1')
-			$l_i_Offset = Dec($l_i_Offset)
-			If $l_i_Offset <= 0x7F Then
-				$g_i_ASMSize += 3
-				$g_s_ASMCode &= '8B49' & Hex($l_i_Offset, 2)
-			Else
-				$g_i_ASMSize += 6
-				$g_s_ASMCode &= '8B89' & Utils_SwapEndian(Hex($l_i_Offset, 8))
 			EndIf
 		Case StringRegExp($a_s_ASM, 'mov esi,dword\[ebp\+[0-9A-Fa-f]+\]')
 			Local $l_i_Offset = StringRegExpReplace($a_s_ASM, 'mov esi,dword\[ebp\+([0-9A-Fa-f]+)\]', '$1')
@@ -943,6 +870,114 @@ Func _($a_s_ASM)
 				$g_i_ASMSize += 6
 				$g_s_ASMCode &= '89A0' & Utils_SwapEndian(Hex($l_i_Offset, 8))
 			EndIf
+		Case StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$', 1)
+            Local $l_i_Dst = Assemlber_Reg32Code($l_as_M[0])
+            Local $l_i_Src = Assemlber_Reg32Code($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
+            $g_i_ASMSize += 2
+            $g_s_ASMCode &= '01' & Hex($l_i_ModRM, 2)
+		Case StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$', 1)
+            Local $l_i_Dst = Assemlber_Reg16Code($l_as_M[0])
+            Local $l_i_Src = Assemlber_Reg16Code($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
+            $g_i_ASMSize += 3
+            $g_s_ASMCode &= '66' & '01' & Hex($l_i_ModRM, 2)
+		Case StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$', 1)
+            Local $l_i_Dst = Assemlber_Reg8Code($l_as_M[0])
+            Local $l_i_Src = Assemlber_Reg8Code($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
+            $g_i_ASMSize += 2
+            $g_s_ASMCode &= '00' & Hex($l_i_ModRM, 2)
+		Case StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$', 1)
+            Local $l_i_Reg = Assemlber_Reg32Code($l_as_M[0])
+            Local $l_i_Imm = Dec($l_as_M[1])
+            If $l_i_Imm <= 0x7F Then
+                Local $l_i_ModRM = 0xC0 + $l_i_Reg
+                $g_i_ASMSize += 3
+                $g_s_ASMCode &= '83' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
+            Else
+                Local $l_i_ModRM = 0xC0 + $l_i_Reg
+                $g_i_ASMSize += 6
+                $g_s_ASMCode &= '81' & Hex($l_i_ModRM, 2) & Utils_SwapEndian(Hex($l_i_Imm, 8))
+            EndIf
+		Case StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$', 1)
+            Local $l_i_Reg = Assemlber_Reg16Code($l_as_M[0])
+            Local $l_i_Imm = Dec($l_as_M[1])
+            If $l_i_Imm <= 0x7F Then
+                Local $l_i_ModRM = 0xC0 + $l_i_Reg
+                $g_i_ASMSize += 4
+                $g_s_ASMCode &= '66' & '83' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
+            Else
+                Local $l_i_ModRM = 0xC0 + $l_i_Reg
+                $g_i_ASMSize += 5
+                $g_s_ASMCode &= '66' & '81' & Hex($l_i_ModRM, 2) & Utils_SwapEndian(Hex($l_i_Imm, 4))
+            EndIf
+		Case StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^add\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$', 1)
+            Local $l_i_Reg = Assemlber_Reg8Code($l_as_M[0])
+            Local $l_i_Imm = Dec($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + $l_i_Reg
+            $g_i_ASMSize += 3
+            $g_s_ASMCode &= '80' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
+        Case StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*(eax|ecx|edx|ebx|esp|ebp|esi|edi)$', 1)
+            Local $l_i_Dst = Assemlber_Reg32Code($l_as_M[0])
+            Local $l_i_Src = Assemlber_Reg32Code($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
+            $g_i_ASMSize += 2
+            $g_s_ASMCode &= '29' & Hex($l_i_ModRM, 2)
+        Case StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*(ax|cx|dx|bx|sp|bp|si|di)$', 1)
+            Local $l_i_Dst = Assemlber_Reg16Code($l_as_M[0])
+            Local $l_i_Src = Assemlber_Reg16Code($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
+            $g_i_ASMSize += 3
+            $g_s_ASMCode &= '66' & '29' & Hex($l_i_ModRM, 2)
+        Case StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*(al|cl|dl|bl|ah|ch|dh|bh)$', 1)
+            Local $l_i_Dst = Assemlber_Reg8Code($l_as_M[0])
+            Local $l_i_Src = Assemlber_Reg8Code($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + ($l_i_Src * 8) + $l_i_Dst
+            $g_i_ASMSize += 2
+            $g_s_ASMCode &= '28' & Hex($l_i_ModRM, 2)
+        Case StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(eax|ecx|edx|ebx|esp|ebp|esi|edi)\s*,\s*([0-9A-Fa-f]+)$', 1)
+            Local $l_i_Reg = Assemlber_Reg32Code($l_as_M[0])
+            Local $l_i_Imm = Dec($l_as_M[1])
+            If $l_i_Imm <= 0x7F Then
+                Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
+                $g_i_ASMSize += 3
+                $g_s_ASMCode &= '83' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
+            Else
+                Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
+                $g_i_ASMSize += 6
+                $g_s_ASMCode &= '81' & Hex($l_i_ModRM, 2) & Utils_SwapEndian(Hex($l_i_Imm, 8))
+            EndIf
+        Case StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(ax|cx|dx|bx|sp|bp|si|di)\s*,\s*([0-9A-Fa-f]+)$', 1)
+            Local $l_i_Reg = Assemlber_Reg16Code($l_as_M[0])
+            Local $l_i_Imm = Dec($l_as_M[1])
+            If $l_i_Imm <= 0x7F Then
+                Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
+                $g_i_ASMSize += 4
+                $g_s_ASMCode &= '66' & '83' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
+            Else
+                Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
+                $g_i_ASMSize += 5
+                $g_s_ASMCode &= '66' & '81' & Hex($l_i_ModRM, 2) & Utils_SwapEndian(Hex($l_i_Imm, 4))
+            EndIf
+        Case StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$')
+            Local $l_as_M = StringRegExp($a_s_ASM, '^sub\s+(al|cl|dl|bl|ah|ch|dh|bh)\s*,\s*([0-9A-Fa-f]+)$', 1)
+            Local $l_i_Reg = Assemlber_Reg8Code($l_as_M[0])
+            Local $l_i_Imm = Dec($l_as_M[1])
+            Local $l_i_ModRM = 0xC0 + (5 * 8) + $l_i_Reg
+            $g_i_ASMSize += 3
+            $g_s_ASMCode &= '80' & Hex($l_i_ModRM, 2) & Hex($l_i_Imm, 2)
 		Case Else
 			Local $l_s_OpCode
 			Switch $a_s_ASM
@@ -952,8 +987,6 @@ Func _($a_s_ASM)
 					$l_s_OpCode = 'F8'
 				Case 'retn'
 					$l_s_OpCode = 'C3'
-				Case 'retn 10'
-					$l_s_OpCode = 'C21000'
 				Case 'nop'
 					$l_s_OpCode = '90'
 				Case 'pushad'
@@ -1052,20 +1085,6 @@ Func _($a_s_ASM)
 					$l_s_OpCode = '33D2'
 				Case 'xor ebx,ebx'
 					$l_s_OpCode = '33DB'
-				Case 'sub eax,4'
-					$l_s_OpCode = '83E804'
-				Case 'sub esp,8'
-					$l_s_OpCode = '83EC08'
-				Case 'sub esi,4'
-					$l_s_OpCode = '83EE04'
-				Case 'sub esp,14'
-					$l_s_OpCode = '83EC14'
-				Case 'sub eax,C'
-					$l_s_OpCode = '83E80C'
-				Case 'sub esp,16'
-					$l_s_OpCode = '83EC10'
-				Case 'sub esp,12'
-					$l_s_OpCode = '83EC0C'
 				Case 'lea eax,dword[eax+18]'
 					$l_s_OpCode = '8D4018'
 				Case 'lea ecx,dword[eax+4]'
@@ -1118,24 +1137,6 @@ Func _($a_s_ASM)
 					$l_s_OpCode = 'C1E310'
 				Case 'shl esi,8'
 					$l_s_OpCode = 'C1E608'
-				Case 'add ebx,ecx'
-					$l_s_OpCode = '03D9'
-				Case 'add esi,D'
-					$l_s_OpCode = '83C60D'
-				Case 'add esi,12'
-					$l_s_OpCode = '83C612'
-				Case 'add edi,8'
-					$l_s_OpCode = '83C708'
-				Case 'add eax,ebx'
-					$l_s_OpCode = '03C3'
-				Case 'add ecx,edx'
-					$l_s_OpCode = '03CA'
-				Case 'add eax,esi'
-					$l_s_OpCode = '03C6'
-				Case 'add esp,16'
-					$l_s_OpCode = '83C410'
-				Case 'add esp,12'
-					$l_s_OpCode = '83C40C'
 				Case 'or eax,esi'
 					$l_s_OpCode = '0BC6'
 				Case 'or eax,edi'
