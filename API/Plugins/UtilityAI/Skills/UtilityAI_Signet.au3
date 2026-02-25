@@ -1007,6 +1007,7 @@ EndFunc
 
 Func CanUse_SunspearRebirthSignet()
 	If Anti_Signet() Then Return False
+	If UAI_PlayerHasEffect($GC_I_SKILL_ID_CURSE_OF_DHUUM) Or UAI_PlayerHasEffect($GC_I_SKILL_ID_FROZEN_SOIL) Then Return False
 	Return True
 EndFunc
 
@@ -1015,7 +1016,7 @@ Func BestTarget_SunspearRebirthSignet($a_f_AggroRange)
 	; Sunspear rank
 	; Concise description
 	; //en.wikipedia.org/wiki/Sic" class="extiw" title="w:Sic">
-	Return 0
+	Return UAI_GetNearestAgent(-2, $a_f_AggroRange, "UAI_Filter_IsDeadAlly")
 EndFunc
 
 Func CanUse_TryptophanSignet()
