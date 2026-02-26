@@ -3131,6 +3131,12 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 			Return False
 	EndSwitch
 
+	If Not IsDeclared("l_ai_Coords") Then
+		Out("WARNING: No exit coords defined for: ")
+		Out($g_a2D_MapArray[$a_i_FromMapID][1] & " to " & $g_a2D_MapArray[$a_i_ToMapID][1])
+		Return False
+	EndIf
+
 	Return $l_ai_Coords
 EndFunc   ;==>Map_GetExitPortalsCoords
 
@@ -3346,7 +3352,7 @@ Func Map_GetConnectedMaps($a_i_MapID)
 		Case $GC_I_MAP_ID_FISHERMENS_HAVEN
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_STINGRAY_STRAND]
 		Case $GC_I_MAP_ID_RIVERSIDE_PROVINCE_OUTPOST
-			Local $l_a_Connected[] = [$GC_I_MAP_ID_TANGLE_ROOT, $GC_I_MAP_ID_TWIN_SERPENT_LAKES]
+			Local $l_a_Connected[] = [$GC_I_MAP_ID_TWIN_SERPENT_LAKES] ;$GC_I_MAP_ID_TANGLE_ROOT,
 		Case $GC_I_MAP_ID_KESSEX_PEAK
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_THE_BLACK_CURTAIN]
 		Case $GC_I_MAP_ID_DUNES_OF_DESPAIR_OUTPOST

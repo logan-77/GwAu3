@@ -98,7 +98,7 @@ Func Core_Initialize($a_s_GW, $a_b_ChangeTitle = True)
 	Scanner_AddPattern('TradeCancel', 'C745FC01000000506A04', -0x6, 'Func')
 	; Ui patterns
 	Scanner_AddPattern('UIMessage', 'B900000000E8000000005DC3894508', -0x14, 'Func')
-	Scanner_AddPattern('CompassFlag', '8D451050566A5C57', 0x1, 'Func')
+	Scanner_AddPattern('CompassFlag', '8D451050566A5D57', 0x1, 'Func')
 	Scanner_AddPattern('PartySearchButtonCallback', '8B450883EC08568BF18B480483F90E', -0x2, 'Func')
 	Scanner_AddPattern('PartyWindowButtonCallback', '837d0800578bf97411', -0x2, 'Func')
 	Scanner_AddPattern('EnterMission', 'A900001000743A', 0x52, 'Func')
