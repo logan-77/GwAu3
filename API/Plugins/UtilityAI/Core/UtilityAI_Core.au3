@@ -53,6 +53,7 @@ Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 35
 	If $g_b_CacheWeaponSet Then UAI_DeterminateWeaponSets()
 
 	Do
+		If Agent_GetDistanceToXY($a_f_x, $a_f_y) > $a_f_AggroRange Then ExitLoop
 		If $g_i_ForceTarget <> 0 And UAI_GetAgentInfoByID($g_i_ForceTarget, $GC_UAI_AGENT_IsDead) Then
 			$g_i_ForceTarget = UAI_FindAgentByPlayerNumber($l_v_PriorityTargets, -2, $a_f_AggroRange, "UAI_Filter_IsLivingEnemy")
 			If $g_i_ForceTarget = 0 And $a_b_KillOnly Then ExitLoop
@@ -94,14 +95,17 @@ Func UAI_UseSkills($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY 
 		; If no enemy in player's range but heroes have aggro, move toward the enemy
 		Local $l_i_PlayerRangeEnemy = UAI_GetNearestAgent(-2, $a_f_AggroRange, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsNotAvoided")
 		If $l_i_PlayerRangeEnemy = 0 Then
-			Local $l_i_PartyRangeEnemy = UAI_GetNearestEnemyInPartyRange($a_f_AggroRange)
-			If $l_i_PartyRangeEnemy <> 0 Then
-				; Move toward the enemy that the hero has aggro'd
-				Local $l_f_EnemyX = UAI_GetAgentInfoByID($l_i_PartyRangeEnemy, $GC_UAI_AGENT_X)
-				Local $l_f_EnemyY = UAI_GetAgentInfoByID($l_i_PartyRangeEnemy, $GC_UAI_AGENT_Y)
-				Map_Move($l_f_EnemyX, $l_f_EnemyY, 0)
-				Sleep(500)
-				Return ; Exit and let the next loop iteration handle the rest
+			; Don't chase hero targets if player is beyond aggro range from fight origin
+			If Agent_GetDistanceToXY($a_f_x, $a_f_y) <= $a_f_AggroRange Then
+				Local $l_i_PartyRangeEnemy = UAI_GetNearestEnemyInPartyRange($a_f_AggroRange)
+				If $l_i_PartyRangeEnemy <> 0 Then
+					; Move toward the enemy that the hero has aggro'd
+					Local $l_f_EnemyX = UAI_GetAgentInfoByID($l_i_PartyRangeEnemy, $GC_UAI_AGENT_X)
+					Local $l_f_EnemyY = UAI_GetAgentInfoByID($l_i_PartyRangeEnemy, $GC_UAI_AGENT_Y)
+					Map_Move($l_f_EnemyX, $l_f_EnemyY, 0)
+					Sleep(500)
+					Return ; Exit and let the next loop iteration handle the rest
+				EndIf
 			EndIf
 		EndIf
 
@@ -179,7 +183,7 @@ Func UAI_UseSkillEX($a_i_SkillSlot, $a_i_AgentID = -2)
 				ExitLoop
 			EndIf
 			Sleep(32)
-			UAI_UpdateCache(100)
+			UAI_UpdateCache(1320)
 		Until Agent_GetDistance($a_i_AgentID) <= 240 Or Agent_GetAgentInfo(-2, "IsDead") Or Map_GetInstanceInfo("Type") <> $GC_I_MAP_TYPE_EXPLORABLE Or Not UAI_CanCast($a_i_SkillSlot) Or Agent_GetAgentInfo(-2, "IsKnocked")
 	EndIf
 

@@ -2161,7 +2161,7 @@ Func BestTarget_BlazingSpear($a_f_AggroRange)
 	; Spear Attack. If this attack hits, it deals +5...21...25 damage and sets target foe on Fire  for 1...3...3 second[s].
 	; Concise description
 	; Spear Attack. Deals +5...21...25 damage. Inflicts Burning condition (1...3...3 second[s]).
-	Return 0
+	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1547 - $GC_I_SKILL_ID_MIGHTY_THROW
@@ -2189,7 +2189,7 @@ Func BestTarget_CruelSpear($a_f_AggroRange)
 	; Elite Spear Attack. If this attack hits, you deal +1...25...31 damage. If it hits a non-moving target, you inflict a Deep Wound for 5...17...20 seconds.
 	; Concise description
 	; Elite Spear Attack. Deals +1...25...31 damage. Inflicts Deep Wound condition (5...17...20 seconds) if target is not moving.
-	Return 0
+	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1549 - $GC_I_SKILL_ID_HARRIERS_TOSS
@@ -2227,7 +2227,7 @@ Func BestTarget_SpearOfLightning($a_f_AggroRange)
 	; Spear Attack. If this attack hits, it deals +8...18...20 lightning damage. This attack has 25% armor penetration.
 	; Concise description
 	; Spear Attack. Deals +8...18...20 lightning damage. 25% armor penetration.
-	Return 0
+	Return UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1552 - $GC_I_SKILL_ID_WEARYING_SPEAR
@@ -2255,7 +2255,9 @@ Func BestTarget_BarbedSpear($a_f_AggroRange)
 	; Spear Attack. If this attack hits, your target begins Bleeding for 5...17...20 seconds.
 	; Concise description
 	; Spear Attack. Inflicts Bleeding condition (5...17...20 seconds).
-	Return 0
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|-UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+	Return UAI_GetAgentHighest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1601 - $GC_I_SKILL_ID_VICIOUS_ATTACK
@@ -2297,6 +2299,8 @@ Func BestTarget_MercilessSpear($a_f_AggroRange)
 	; Spear Attack. If this attack hits a foe with less than 50% Health, that foe suffers from a Deep Wound for 5...17...20 seconds.
 	; Concise description
 	; Spear Attack. Inflicts Deep Wound condition (5...17...20 seconds). No effect unless target has less than 50% Health.
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.5 Then Return $l_i_Target
 	Return 0
 EndFunc
 

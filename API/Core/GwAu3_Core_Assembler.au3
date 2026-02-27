@@ -197,6 +197,15 @@ Func _($a_s_ASM)
 				$g_i_ASMSize += 5
 				$g_s_ASMCode &= '3D' & Assembler_ASMNumber($l_i_Value)
 			EndIf
+		Case StringRegExp($a_s_ASM, 'cmp ebx,[0-9A-Fa-f]+\z')
+			Local $l_i_Value = Dec(StringMid($a_s_ASM, 9))
+			If $l_i_Value <= 0x7F Then
+				$g_i_ASMSize += 3
+				$g_s_ASMCode &= '83FB' & Hex($l_i_Value, 2)
+			Else
+				$g_i_ASMSize += 6
+				$g_s_ASMCode &= '81FB' & Utils_SwapEndian(Hex($l_i_Value, 8))
+			EndIf
 		Case StringRegExp($a_s_ASM, 'cmp ebx,[-[:xdigit:]]{1,2}\z')
 			Local $l_i_Value = StringMid($a_s_ASM, 9)
 			$g_i_ASMSize += 3
@@ -1091,6 +1100,8 @@ Func _($a_s_ASM)
 					$l_s_OpCode = '8D4804'
 				Case 'lea ecx,dword[eax+C]'
 					$l_s_OpCode = '8D480C'
+				Case 'lea ecx,dword[eax+10]'
+					$l_s_OpCode = '8D4810'
 				Case 'lea eax,dword[eax+4]'
 					$l_s_OpCode = '8D4004'
 				Case 'lea edx,dword[eax]'
