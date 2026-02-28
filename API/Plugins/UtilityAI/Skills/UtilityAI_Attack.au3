@@ -1987,6 +1987,8 @@ EndFunc
 ; Skill ID: 1484 - $GC_I_SKILL_ID_MYSTIC_SWEEP
 Func CanUse_MysticSweep()
 	If Anti_Attack() Then Return False
+	If Not UAI_GetPlayerInfo($GC_UAI_AGENT_IsEnchanted) Then Return False
+	
 	Return True
 EndFunc
 
@@ -1995,7 +1997,7 @@ Func BestTarget_MysticSweep($a_f_AggroRange)
 	; Melee Attack. If this attack hits, you deal +3...10...12 damage. If you are enchanted, this attack deals an additional +3...10...12 damage.
 	; Concise description
 	; Melee Attack. Deals +3...10...12 damage. Deals an additional +3...10...12 damage if you are enchanted.
-	Return 0
+	Return UAI_GetBestAOETarget(-2, $GC_I_RANGE_ADJACENT, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1485 - $GC_I_SKILL_ID_EREMITES_ATTACK

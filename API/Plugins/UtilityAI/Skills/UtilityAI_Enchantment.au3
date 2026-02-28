@@ -942,6 +942,15 @@ Func BestTarget_PeaceAndHarmony($a_f_AggroRange)
 	; Elite Enchantment Spell. Target ally loses 0...7...9 condition[s] and hex[es]. For 1...3...3 second[s], conditions and hexes expire 90% faster on that ally. All your Smiting Prayers are disabled for 20 seconds.
 	; Concise description
 	; Elite Enchantment Spell. Target ally loses 0...7...9 condition[s] and hex[es]. Conditions and hexes expire 90% faster on that ally (1...3...3 second[s]). Disables your Smiting Prayers (20 seconds).
+	Local $l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsConditioned|UAI_Filter_IsHexed")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsHexed")
+	If $l_i_Target <> 0 Then Return $l_i_Target
+
+	$l_i_Target = UAI_GetAgentLowest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingAlly|UAI_Filter_IsConditioned")
+	If $l_i_Target <> 0 And UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) < 0.5 Then Return $l_i_Target
+
 	Return 0
 EndFunc
 
@@ -2854,6 +2863,15 @@ EndFunc
 ; Skill ID: 1759 - $GC_I_SKILL_ID_VOW_OF_STRENGTH
 Func CanUse_VowOfStrength()
 	If Anti_Enchantment() Then Return False
+
+	Local $l_b_SkillSlot = Skill_GetSlotByID($GC_I_SKILL_ID_EXTEND_ENCHANTMENTS)
+	Local $l_b_HasEffect = UAI_GetPlayerEffectInfo($GC_I_SKILL_ID_EXTEND_ENCHANTMENTS, $GC_UAI_EFFECT_TimeRemaining) > 500
+
+	If $l_b_SkillSlot > 0 Then
+		If Not $l_b_HasEffect Then
+			Skill_UseSkill($l_b_SkillSlot)
+		EndIf
+	EndIf
 	Return True
 EndFunc
 
