@@ -1,6 +1,6 @@
 #RequireAdmin
 #include "../../API/_GwAu3.au3"
-$DLL_PATH = "..\..\API\Pathfinding\GWPathfinder.dll"
+$DLL_PATH = @ScriptDir & "\GWPathfinder.dll"
 
 Global Const $doLoadLoggedChars = True
 Opt("GUIOnEventMode", True)

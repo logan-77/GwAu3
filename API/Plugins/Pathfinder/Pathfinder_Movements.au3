@@ -3,7 +3,7 @@
 #include "Pathfinder_Core.au3"
 
 ; Movement state
-Global $g_aPathfinder_CurrentPath[0][3]  ; x, y, layer
+Global $g_aPathfinder_CurrentPath[0][4]  ; x, y, layer, tp_type
 Global $g_iPathfinder_CurrentPathIndex = 0
 Global $g_hPathfinder_LastPathUpdateTime = 0
 
@@ -15,6 +15,7 @@ Global $g_iPathfinder_ObstacleUpdateInterval = 1000  ; Interval for dynamic obst
 Global $g_iPathfinder_StuckCheckInterval = 500      ; Interval to check if stuck (ms)
 Global $g_iPathfinder_StuckDistance = 100           ; If moved less than this, consider stuck
 Global $g_iPathfinder_UnstuckDirectionIndex = 0     ; Current direction index for unstuck (0-7, cycles through 16 directions)
+Global $g_sPathfinder_SwitchTeleportFunc = ""        ; Callback for switch-activated teleporters: MyFunc($x, $y)
 
 ; Move to a destination using pathfinding with obstacle avoidance
 ; $aDestX, $aDestY = Destination coordinates
@@ -26,7 +27,7 @@ Global $g_iPathfinder_UnstuckDirectionIndex = 0     ; Current direction index fo
 ; $aFightRangeOut = Range out for fighting
 ; $aFinisherMode = Finisher mode for UAI_Fight
 ; Returns: True if destination reached, False if interrupted
-Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $aFightRangeOut = 3500, $aFinisherMode = 0, $aCallFunc = "")
+Func Pathfinder_MoveTo($aDestX, $aDestY, $aDestLayer = -1, $aObstacles = 0, $aAggroRange = 1320, $aFightRangeOut = 3500, $aFinisherMode = 0, $aCallFunc = "")
     Local $lMyOldMap = Map_GetMapID()
     Local $lMapLoadingOld = Map_GetInstanceInfo("Type")
     Local $lMyX = Agent_GetAgentInfo(-2, "X")
@@ -51,10 +52,18 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
 
 	; Initialize DLL if not already loaded
     If $g_hPathfinderDLL = 0 Or $g_hPathfinderDLL = -1 Then
-        If Not Pathfinder_Initialize() Then
-            ; Fallback to direct movement if DLL fails
-            Map_MoveLayer($aDestX, $aDestY, $lLayer)
+        Local $lInitResult = Pathfinder_Initialize()
+        If $lInitResult = 0 Then
+            ; DLL failed to load - fallback to direct movement
+            Out("[Pathfinder] ERROR: Failed to initialize DLL")
+            If Map_GetMapID() = $lMyOldMap Then
+				Map_MoveLayer($aDestX, $aDestY, $lLayer)
+			Else
+				Agent_CancelAction()
+			EndIf
             Return False
+        ElseIf $lInitResult = 2 Then
+            Out("[Pathfinder] WARNING: maps.rar and maps/ folder not found - pathfinding may not work")
         EndIf
     EndIf
 
@@ -74,12 +83,16 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
         $lCurrentObstacles = $aObstacles
     EndIf
 
-    Local $lPath = _Pathfinder_GetPath($lMyX, $lMyY, $lLayer, $aDestX, $aDestY, $lCurrentObstacles)
+    Local $lPath = _Pathfinder_GetPath($lMyX, $lMyY, $lLayer, $aDestX, $aDestY, $aDestLayer, $lCurrentObstacles)
     If Not IsArray($lPath) Or UBound($lPath) = 0 Then
         ; Path calculation failed - use empty path and rely on direct movement
-        Local $lEmptyPath[0][3]
+        Local $lEmptyPath[0][4]
         $lPath = $lEmptyPath
-        Map_MoveLayer($aDestX, $aDestY, $lLayer)
+		If Map_GetMapID() = $lMyOldMap Then
+			Map_MoveLayer($aDestX, $aDestY, $lLayer)
+		Else
+			Agent_CancelAction()
+		EndIf
     EndIf
 
     ; Initialize path tracking
@@ -118,14 +131,9 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
 
         ; Update obstacles (dynamic mode only)
         If $lIsDynamicObstacles And TimerDiff($lLastObstacleUpdate) > $g_iPathfinder_ObstacleUpdateInterval Then
-            Local $lNewObstacles = Call($aObstacles)
+            $lCurrentObstacles = Call($aObstacles)
             $lLastObstacleUpdate = TimerInit()
-
-            ; Only recalculate if obstacles changed significantly or block current path
-            If _Pathfinder_ObstaclesBlockPath($g_aPathfinder_CurrentPath, $g_iPathfinder_CurrentPathIndex, $lNewObstacles) Then
-                $lCurrentObstacles = $lNewObstacles
-                $lNeedPathUpdate = True
-            EndIf
+            $lNeedPathUpdate = True
         EndIf
 
         ; Stuck detection
@@ -137,7 +145,11 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
                     ; Directions in opposite pairs: N, S, E, W, NE, SW, NW, SE
                     Local $lUnstuckAngles[8] = [1.5707963, 4.7123890, 0.0, 3.1415927, 0.7853982, 3.9269908, 2.3561945, 5.4977871]
                     Local $lAngle = $lUnstuckAngles[$g_iPathfinder_UnstuckDirectionIndex]
-                    Map_MoveLayer($lMyX + Cos($lAngle) * 500, $lMyY + Sin($lAngle) * 500, $lLayer)
+                    If Map_GetMapID() = $lMyOldMap Then
+						Map_MoveLayer($lMyX + Cos($lAngle) * 500, $lMyY + Sin($lAngle) * 500, $lLayer)
+					Else
+						Agent_CancelAction()
+					EndIf
                     Sleep(750)
                     $g_iPathfinder_UnstuckDirectionIndex = Mod($g_iPathfinder_UnstuckDirectionIndex + 1, 8)
                     $lStuckCount = 0
@@ -153,13 +165,13 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
 
         ; Recalculate path at every interval (always from current position)
         If TimerDiff($g_hPathfinder_LastPathUpdateTime) > $g_iPathfinder_PathUpdateInterval Or $lNeedPathUpdate Then
-            $lPath = _Pathfinder_GetPath($lMyX, $lMyY, $lLayer, $aDestX, $aDestY, $lCurrentObstacles)
+            $lPath = _Pathfinder_GetPath($lMyX, $lMyY, $lLayer, $aDestX, $aDestY, $aDestLayer, $lCurrentObstacles)
             If IsArray($lPath) And UBound($lPath) > 0 Then
                 $g_aPathfinder_CurrentPath = $lPath
                 $g_iPathfinder_CurrentPathIndex = 0
             Else
                 ; Path calculation failed - clear path so we use direct movement
-                Local $lEmptyPath[0][3]
+                Local $lEmptyPath[0][4]
                 $g_aPathfinder_CurrentPath = $lEmptyPath
                 $g_iPathfinder_CurrentPathIndex = 0
             EndIf
@@ -169,13 +181,24 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
 
         ; Move to current waypoint
         If $g_iPathfinder_CurrentPathIndex >= UBound($g_aPathfinder_CurrentPath) Then
-            Map_MoveLayer($aDestX, $aDestY, $lLayer)
+            If Map_GetMapID() = $lMyOldMap Then
+				Map_MoveLayer($aDestX, $aDestY, $lLayer)
+			Else
+				Agent_CancelAction()
+			EndIf
         Else
             Local $lWaypointX = $g_aPathfinder_CurrentPath[$g_iPathfinder_CurrentPathIndex][0]
             Local $lWaypointY = $g_aPathfinder_CurrentPath[$g_iPathfinder_CurrentPathIndex][1]
             $lLayer = $g_aPathfinder_CurrentPath[$g_iPathfinder_CurrentPathIndex][2]
 
             If _Pathfinder_Distance($lMyX, $lMyY, $lWaypointX, $lWaypointY) < $g_iPathfinder_WaypointReachedDistance Then
+                ; Check if reached waypoint is a switch-activated teleporter (tp_type == 3)
+                Local $lTpType = $g_aPathfinder_CurrentPath[$g_iPathfinder_CurrentPathIndex][3]
+                If $lTpType = 3 And $g_sPathfinder_SwitchTeleportFunc <> "" Then
+                    _Pathfinder_Log("Switch teleporter reached at (" & Round($lWaypointX, 1) & ", " & Round($lWaypointY, 1) & ") - calling activation callback")
+                    Call($g_sPathfinder_SwitchTeleportFunc, $lWaypointX, $lWaypointY)
+                EndIf
+
                 $g_iPathfinder_CurrentPathIndex += 1
                 If $g_iPathfinder_CurrentPathIndex < UBound($g_aPathfinder_CurrentPath) Then
                     $lWaypointX = $g_aPathfinder_CurrentPath[$g_iPathfinder_CurrentPathIndex][0]
@@ -189,7 +212,11 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
             EndIf
 
             ; Use Map_MoveLayer to move to the correct layer (important for bridges)
-            Map_MoveLayer($lWaypointX, $lWaypointY, $lLayer)
+            If Map_GetMapID() = $lMyOldMap Then
+				Map_MoveLayer($lWaypointX, $lWaypointY, $lLayer)
+			Else
+				Agent_CancelAction()
+			EndIf
         EndIf
 
         ; Fight if needed
@@ -219,6 +246,8 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
 
     Until Agent_GetDistanceToXY($aDestX, $aDestY) < 125
 
+	Agent_CancelAction()
+
     ; Shutdown DLL and free memory
     Pathfinder_Shutdown()
 
@@ -226,216 +255,35 @@ Func Pathfinder_MoveTo($aDestX, $aDestY, $aObstacles = 0, $aAggroRange = 1320, $
 EndFunc
 
 ; Internal: Get path from current position to destination
-Func _Pathfinder_GetPath($aStartX, $aStartY, $aStartLayer, $aDestX, $aDestY, $aObstacles)
+Func _Pathfinder_GetPath($aStartX, $aStartY, $aStartLayer, $aDestX, $aDestY, $aDestLayer, $aObstacles)
     Local $lMapID = Map_GetMapID()
     Local $lObstacleCount = 0
     If IsArray($aObstacles) Then $lObstacleCount = UBound($aObstacles)
 
     _Pathfinder_Log("GetPath: Map=" & $lMapID & " Start=(" & Round($aStartX, 1) & ", " & Round($aStartY, 1) & ") Layer=" & $aStartLayer & " Dest=(" & Round($aDestX, 1) & ", " & Round($aDestY, 1) & ") Obstacles=" & $lObstacleCount)
 
-    ; Get raw path with minimal simplification from DLL
-    Local $lPath = Pathfinder_FindPath($lMapID, $aStartX, $aStartY, $aStartLayer, $aDestX, $aDestY, $aObstacles, 100)
+    ; DLL handles pathfinding + obstacle avoidance + simplification
+    Local $lPath = Pathfinder_FindPath($lMapID, $aStartX, $aStartY, $aStartLayer, $aDestX, $aDestY, $aDestLayer, $aObstacles, $g_iPathfinder_SimplifyRange)
     Local $lError = @error
     Local $lExtended = @extended
 
     If $lError Then
-        _Pathfinder_Log("ERROR: FindPathGWWithObstacle failed - @error=" & $lError & " @extended=" & $lExtended)
+        _Pathfinder_Log("ERROR: FindPathWithObstacles failed - @error=" & $lError & " @extended=" & $lExtended)
         Return 0
     EndIf
 
     If Not IsArray($lPath) Then
-        _Pathfinder_Log("ERROR: FindPathGWWithObstacle returned non-array")
+        _Pathfinder_Log("ERROR: FindPathWithObstacles returned non-array")
         Return 0
-    EndIf
-
-    ; Apply smart simplification if obstacles are provided
-    If IsArray($aObstacles) And UBound($aObstacles) > 0 Then
-        $lPath = _Pathfinder_SmartSimplify($lPath, $aObstacles, $g_iPathfinder_SimplifyRange)
     EndIf
 
     _Pathfinder_Log("SUCCESS: Path found with " & UBound($lPath) & " points")
     Return $lPath
 EndFunc
 
-; Smart path simplification that preserves waypoints near obstacles and layer changes
-; $aPath = 2D array of waypoints [[x, y, layer], ...]
-; $aObstacles = 2D array of obstacles [[x, y, radius], ...]
-; $aSimplifyRange = distance threshold for simplification
-Func _Pathfinder_SmartSimplify($aPath, $aObstacles, $aSimplifyRange)
-    ; Validate input
-    If Not IsArray($aPath) Then Return $aPath
-    Local $lPointCount = UBound($aPath)
-    If $lPointCount <= 2 Then Return $aPath
-    ; Validate 2D array with at least 3 columns
-    If UBound($aPath, 0) <> 2 Or UBound($aPath, 2) < 3 Then Return $aPath
-
-    ; Mark which points are critical (near obstacles or layer changes)
-    Local $lCritical[$lPointCount]
-    $lCritical[0] = True ; First point always critical
-    $lCritical[$lPointCount - 1] = True ; Last point always critical
-
-    ; Safety margin around obstacles
-    Local $lSafetyMargin = 100
-
-    For $i = 1 To $lPointCount - 2
-        $lCritical[$i] = False
-        Local $lWpX = $aPath[$i][0]
-        Local $lWpY = $aPath[$i][1]
-        Local $lWpLayer = $aPath[$i][2]
-
-        ; Check if layer changes from previous point (critical for bridges!)
-        If $lWpLayer <> $aPath[$i - 1][2] Then
-            $lCritical[$i] = True
-            ContinueLoop
-        EndIf
-
-        ; Check if layer changes to next point (critical for bridges!)
-        If $lWpLayer <> $aPath[$i + 1][2] Then
-            $lCritical[$i] = True
-            ContinueLoop
-        EndIf
-
-        ; Check if this waypoint is near any obstacle
-        For $j = 0 To UBound($aObstacles) - 1
-            Local $lObsX = $aObstacles[$j][0]
-            Local $lObsY = $aObstacles[$j][1]
-            Local $lObsRadius = $aObstacles[$j][2]
-
-            Local $lDist = Sqrt(($lWpX - $lObsX)^2 + ($lWpY - $lObsY)^2)
-
-            ; If waypoint is within obstacle radius + safety margin, it's critical
-            If $lDist < ($lObsRadius + $lSafetyMargin) Then
-                $lCritical[$i] = True
-                ExitLoop
-            EndIf
-        Next
-
-        ; Also check if the line from previous to next point would cross an obstacle
-        If Not $lCritical[$i] And $i > 0 And $i < $lPointCount - 1 Then
-            Local $lPrevX = $aPath[$i - 1][0]
-            Local $lPrevY = $aPath[$i - 1][1]
-            Local $lNextX = $aPath[$i + 1][0]
-            Local $lNextY = $aPath[$i + 1][1]
-
-            If _Pathfinder_LineIntersectsObstacles($lPrevX, $lPrevY, $lNextX, $lNextY, $aObstacles) Then
-                $lCritical[$i] = True
-            EndIf
-        EndIf
-    Next
-
-    ; Now simplify non-critical points based on distance
-    Local $lSimplified[$lPointCount][3]  ; x, y, layer
-    Local $lSimplifiedCount = 0
-    Local $lLastKeptIdx = 0
-
-    ; Always keep first point
-    $lSimplified[$lSimplifiedCount][0] = $aPath[0][0]
-    $lSimplified[$lSimplifiedCount][1] = $aPath[0][1]
-    $lSimplified[$lSimplifiedCount][2] = $aPath[0][2]
-    $lSimplifiedCount += 1
-
-    For $i = 1 To $lPointCount - 2
-        Local $lDistFromLast = _Pathfinder_Distance($aPath[$i][0], $aPath[$i][1], $aPath[$lLastKeptIdx][0], $aPath[$lLastKeptIdx][1])
-
-        ; Keep point if it's critical OR if we've traveled far enough
-        If $lCritical[$i] Or $lDistFromLast >= $aSimplifyRange Then
-            $lSimplified[$lSimplifiedCount][0] = $aPath[$i][0]
-            $lSimplified[$lSimplifiedCount][1] = $aPath[$i][1]
-            $lSimplified[$lSimplifiedCount][2] = $aPath[$i][2]
-            $lSimplifiedCount += 1
-            $lLastKeptIdx = $i
-        EndIf
-    Next
-
-    ; Always keep last point
-    $lSimplified[$lSimplifiedCount][0] = $aPath[$lPointCount - 1][0]
-    $lSimplified[$lSimplifiedCount][1] = $aPath[$lPointCount - 1][1]
-    $lSimplified[$lSimplifiedCount][2] = $aPath[$lPointCount - 1][2]
-    $lSimplifiedCount += 1
-
-    ; Resize array to actual count
-    ReDim $lSimplified[$lSimplifiedCount][3]
-
-    Return $lSimplified
-EndFunc
-
-; Check if a line segment intersects any obstacle
-Func _Pathfinder_LineIntersectsObstacles($aX1, $aY1, $aX2, $aY2, $aObstacles)
-    For $i = 0 To UBound($aObstacles) - 1
-        Local $lObsX = $aObstacles[$i][0]
-        Local $lObsY = $aObstacles[$i][1]
-        Local $lObsRadius = $aObstacles[$i][2]
-
-        ; Calculate distance from obstacle center to line segment
-        Local $lDist = _Pathfinder_PointToLineDistance($lObsX, $lObsY, $aX1, $aY1, $aX2, $aY2)
-
-        If $lDist < $lObsRadius Then
-            Return True
-        EndIf
-    Next
-    Return False
-EndFunc
-
-; Calculate distance from point to line segment
-Func _Pathfinder_PointToLineDistance($aPx, $aPy, $aX1, $aY1, $aX2, $aY2)
-    Local $lDx = $aX2 - $aX1
-    Local $lDy = $aY2 - $aY1
-    Local $lLenSq = $lDx * $lDx + $lDy * $lDy
-
-    If $lLenSq = 0 Then
-        ; Line segment is a point
-        Return Sqrt(($aPx - $aX1)^2 + ($aPy - $aY1)^2)
-    EndIf
-
-    ; Calculate projection parameter
-    Local $lT = (($aPx - $aX1) * $lDx + ($aPy - $aY1) * $lDy) / $lLenSq
-
-    ; Clamp to segment
-    If $lT < 0 Then $lT = 0
-    If $lT > 1 Then $lT = 1
-
-    ; Find closest point on segment
-    Local $lClosestX = $aX1 + $lT * $lDx
-    Local $lClosestY = $aY1 + $lT * $lDy
-
-    Return Sqrt(($aPx - $lClosestX)^2 + ($aPy - $lClosestY)^2)
-EndFunc
-
 ; Internal: Calculate distance between two points
 Func _Pathfinder_Distance($aX1, $aY1, $aX2, $aY2)
     Return Sqrt(($aX2 - $aX1) ^ 2 + ($aY2 - $aY1) ^ 2)
-EndFunc
-
-; Check if any obstacle blocks the remaining path
-; Returns True if path needs recalculation, False otherwise
-Func _Pathfinder_ObstaclesBlockPath($aPath, $aCurrentIndex, $aObstacles)
-    If Not IsArray($aPath) Or UBound($aPath) = 0 Then Return False
-    If Not IsArray($aObstacles) Or UBound($aObstacles) = 0 Then Return False
-
-    ; Check each remaining segment of the path
-    For $i = $aCurrentIndex To UBound($aPath) - 2
-        Local $lX1 = $aPath[$i][0]
-        Local $lY1 = $aPath[$i][1]
-        Local $lX2 = $aPath[$i + 1][0]
-        Local $lY2 = $aPath[$i + 1][1]
-
-        ; Check if any obstacle blocks this segment
-        For $j = 0 To UBound($aObstacles) - 1
-            Local $lObsX = $aObstacles[$j][0]
-            Local $lObsY = $aObstacles[$j][1]
-            Local $lObsRadius = $aObstacles[$j][2]
-
-            ; Calculate distance from obstacle center to line segment
-            Local $lDist = _Pathfinder_PointToLineDistance($lObsX, $lObsY, $lX1, $lY1, $lX2, $lY2)
-
-            ; If obstacle intersects the path segment, we need to recalculate
-            If $lDist < $lObsRadius Then
-                Return True
-            EndIf
-        Next
-    Next
-
-    Return False
 EndFunc
 
 ; Get current path for debugging/visualization
@@ -466,6 +314,13 @@ EndFunc
 ; Set obstacle update interval for dynamic mode (in ms)
 Func Pathfinder_SetObstacleUpdateInterval($aInterval)
     $g_iPathfinder_ObstacleUpdateInterval = $aInterval
+EndFunc
+
+; Set callback function for switch-activated teleporters
+; The function will be called with ($x, $y) when reaching a switch TP waypoint
+; Example: Pathfinder_SetSwitchTeleportCallback("MyActivateSwitch")
+Func Pathfinder_SetSwitchTeleportCallback($sFuncName)
+    $g_sPathfinder_SwitchTeleportFunc = $sFuncName
 EndFunc
 
 ; Enable/disable debug logging

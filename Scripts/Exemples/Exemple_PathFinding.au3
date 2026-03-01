@@ -1,6 +1,6 @@
 #RequireAdmin
 #include "../../API/_GwAu3.au3"
-#include "../../API/Pathfinding/_Pathfinder.au3"
+#include "../../API/Plugins/Pathfinder/_Pathfinder.au3"
 
 Global Const $GC_B_LOAD_LOGGED_CHARS = True
 Opt("GUIOnEventMode", True)
@@ -8,7 +8,7 @@ Opt("GUICloseOnESC", False)
 Opt("ExpandVarStrings", 1)
 
 ;~ DllCall(PATH)
-$DLL_PATH = "..\..\API\Pathfinding\GWPathfinder.dll"
+$DLL_PATH = @ScriptDir & "\GWPathfinder.dll"
 
 #Region Declarations
 Global $g_i_ProcessID = ""

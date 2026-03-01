@@ -43,12 +43,13 @@ $obs = UAI_GetObstacles(85, 4000, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsNPC")
 Moves to destination while avoiding obstacles, with combat and party management.
 
 ```autoit
-Pathfinder_MoveTo($DestX, $DestY, $Obstacles = 0, $AggroRange = 1320, $FightRangeOut = 3500, $FinisherMode = 0, $CallFunc = "")
+Pathfinder_MoveTo($DestX, $DestY, $DestLayer = -1, $Obstacles = 0, $AggroRange = 1320, $FightRangeOut = 3500, $FinisherMode = 0, $CallFunc = "")
 ```
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `$DestX, $DestY` | — | Destination coordinates |
+| `$DestLayer` | `-1` | Destination layer/plane (`-1` = auto-detect) |
 | `$Obstacles` | `0` | `0` = none, `[[x,y,r],...]` = static, `"FuncName"` = dynamic |
 | `$AggroRange` | `1320` | Range to detect and fight enemies |
 | `$FightRangeOut` | `3500` | Range out for fighting |
@@ -210,6 +211,25 @@ The DLL returns many waypoints. `_Pathfinder_SmartSimplify()` reduces them while
          ↓ repeat until within 125 units
 ```
 
+### 4. Resurrection System
+
+When dead party members are detected and resurrection skills are available:
+
+```
+┌─────────────────────────────────────────────────┐
+│  Frozen Soil active? (effect 471)               │
+│  ├── YES → Find spirit (PlayerNumber 2882)      │
+│  │         Target and attack until dead          │
+│  └── NO  → Move towards dead ally               │
+│            If player has a res skill recharged   │
+│            → Use it on dead ally                 │
+│            Heroes also res independently         │
+│                                                  │
+│  Abort if: enemies appear, all rezzed,           │
+│            no res skills left, or timeout (30s)  │
+└─────────────────────────────────────────────────┘
+```
+
 ---
 
 ## Configuration
@@ -348,6 +368,8 @@ struct MapStats {
 | `UAI_Filter_IsGadget` | Gadgets |
 | `UAI_Filter_IsLivingNPC` | Living NPCs (not dead) |
 | `UAI_Filter_IsLivingNPCOrGadget` | Living NPCs or gadgets |
+| `_Pathfinder_FilterIsEnemy` | Living enemies (HP > 0, not dead) |
+| `_Pathfinder_FilterIsFrozenSoilSpirit` | Frozen Soil spirit (PlayerNumber 2882, alive) |
 
 ---
 
@@ -357,7 +379,7 @@ struct MapStats {
 |------|-------------|
 | `_Pathfinder.au3` | Main entry point (includes all modules) |
 | `Pathfinder_Core.au3` | DLL interface and wrapper functions |
-| `Pathfinder_Movements.au3` | Movement logic, combat, party management |
+| `Pathfinder_Movements.au3` | Movement logic, combat, party management, resurrection |
 | `GWPathfinder.dll` | Compiled pathfinding engine |
 | `maps.zip` | Map data archive (~400+ maps) — **must stay in the same folder as the DLL, do not extract** |
 
@@ -375,11 +397,14 @@ $DLL_PATH = "API\Plugins\Pathfinder\GWPathfinder.dll"
 ; Get obstacles (living NPCs and gadgets within 4000 range)
 $obstacles = UAI_GetObstacles(85, 4000, "UAI_Filter_IsLivingNPCOrGadget")
 
-; Move to destination, avoiding obstacles, fighting enemies in 1320 range
-Pathfinder_MoveTo(6364, -2729, $obstacles, 1320, 3500, 0)
+; Move to destination with auto layer detection, avoiding obstacles, fighting enemies in 1320 range
+Pathfinder_MoveTo(6364, -2729, -1, $obstacles, 1320, 3500, 0)
 
 ; With dynamic obstacles and a callback function
-Pathfinder_MoveTo(6364, -2729, "UAI_GetObstacles", 1320, 3500, 0, "MyCallbackFunc")
+Pathfinder_MoveTo(6364, -2729, -1, "UAI_GetObstacles", 1320, 3500, 0, "MyCallbackFunc")
+
+; Move to specific layer (e.g. bridge)
+Pathfinder_MoveTo(6364, -2729, 1, $obstacles, 1320, 3500, 0)
 ```
 
 ## Acknowledgements

@@ -2,12 +2,13 @@
 
 ; Trading operations
 Global Const $GC_I_HEADER_TRADE_INITIATE = 0x0049        	; Initiate a trade with another player.
+Global Const $GC_I_HEADER_TRADE_OTHER_INITIATE = 0x0000		; Someone Initiate a trade with you.
 Global Const $GC_I_HEADER_TRADE_CANCEL = 0x0001          	; Cancel the current trade.
 Global Const $GC_I_HEADER_TRADE_ADD_ITEM = 0x0002        	; Add an item to the trade offer.
 Global Const $GC_I_HEADER_TRADE_SUBMIT_OFFER = 0x0003    	; Submit the current trade offer.
 ;~ Global Const $GC_I_HEADER_MAX_ATTRIBUTES_CONST = 0x0004  ; Maximum attributes constant (not in use).
 Global Const $GC_I_HEADER_TRADE_REMOVE_ITEM = 0x0005     	; Remove an item from the trade offer.
-Global Const $GC_I_HEADER_TRADE_CANCEL_OFFER = 0x0006    	; Cancel the trade offer made.
+Global Const $GC_I_HEADER_TRADE_CHANGE_OFFER = 0x0006    	; Change the trade offer made.
 Global Const $GC_I_HEADER_TRADE_ACCEPT = 0x0007          	; Accept the trade offer.
 ;~ Global Const $GC_I_HEADER_DISCONNECT = 0x0008            ; Handle a disconnect event.
 ;~ Global Const $GC_I_HEADER_PING_REPLY = 0x0009            ; Respond to a ping request.
@@ -15,7 +16,7 @@ Global Const $GC_I_HEADER_TRADE_ACCEPT = 0x0007          	; Accept the trade off
 ;~ Global Const $GC_I_HEADER_PING_REQUEST = 0x000B          ; Send a ping request to another entity.
 Global Const $GC_I_HEADER_ATTRIBUTE_DECREASE = 0x000E    	; Decrease an attribute value.
 Global Const $GC_I_HEADER_ATTRIBUTE_INCREASE = 0x000F    	; Increase an attribute value.
-;~ Global Const $GC_I_HEADER_ATTRIBUTE_LOAD = 0x000E        ; Load attribute data.
+Global Const $GC_I_HEADER_ATTRIBUTE_LOAD = 0x0010        	; Load attribute data.
 Global Const $GC_I_HEADER_SEND_CHAT = 0x0064        		; Send chat command.
 
 ; Quest and Hero operations
@@ -110,3 +111,8 @@ Global Const $GC_I_HEADER_PARTY_TICK = 0x00AF         		   ; Manage party ticks.
 Global Const $GC_I_HEADER_EQUIP_BAG = 0x6B						; to equipe bag item
 Global Const $GC_I_HEADER_SWITCH_SET = 0x32						; Switch weapon set
 Global Const $GC_I_HEADER_TARGET_AGENT = 0xC1					; target an agent
+
+Global Const $GC_I_HEADER_BUY_GUILD_CAPE = 0x0038 ; header used when buy a cape
+Global Const $GC_I_HEADER_SHOW_HIDE = 0x0057 ; show or hide helmt/cape/Costum
+Global Const $GC_I_HEADER_GUILD_ANNOUCEMENTS = 0x00BE ; Modifie guild annoucements
+Global Const $GC_I_HEADER_GUILD_SET_OFFICER = 0x00BD ; Modifie guild member role
