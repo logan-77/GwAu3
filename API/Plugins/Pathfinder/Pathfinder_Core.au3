@@ -24,8 +24,15 @@ Global Const $tagObstacleZone = "float x;float y;float radius"
 Func Pathfinder_Initialize()
     If $g_bPathfinder_Debug Then Out("[Pathfinder] Initialize - DLL_PATH=" & $DLL_PATH)
 
-    ; Check if maps.rar exists next to the DLL, download if missing
+    ; Clean up old maps.zip if it exists
     Local $sDllDir = StringRegExpReplace($DLL_PATH, "\\[^\\]+$", "")
+    Local $sOldZipPath = $sDllDir & "\maps.zip"
+    If FileExists($sOldZipPath) Then
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] Deleting old maps.zip")
+        FileDelete($sOldZipPath)
+    EndIf
+
+    ; Check if maps.rar exists next to the DLL, download if missing
     Local $sMapsPath = $sDllDir & "\maps.rar"
     Local $sMapsDir = $sDllDir & "\maps"
 
