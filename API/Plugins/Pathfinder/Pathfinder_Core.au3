@@ -8,8 +8,8 @@ Global $DLL_PATH = ""
 Global $g_hPathfinderDLL = 0  ; Handle to loaded DLL
 Global $g_bPathfinder_Debug = False  ; Debug logging (can be enabled from Pathfinder_Movements.au3)
 
-; URL to download maps.rar from (set this before calling Pathfinder_Initialize)
-Global $g_sPathfinder_MapsURL = "https://drive.google.com/file/d/1u621EmOBIr5cInGFLdzOcEzsxr-z2VzO/view?usp=sharing"
+; GitHub repository for maps releases (set this before calling Pathfinder_Initialize)
+Global $g_sPathfinder_MapsRepo = "GwAu3-Projects/GwPathfinder-Maps"
 
 Global Const $tagPathPoint = "float x;float y;int layer;int tp_type"
 Global Const $tagPathResult = "ptr points;int point_count;float total_cost;int error_code;char error_message[256]"
@@ -24,27 +24,40 @@ Global Const $tagObstacleZone = "float x;float y;float radius"
 Func Pathfinder_Initialize()
     If $g_bPathfinder_Debug Then Out("[Pathfinder] Initialize - DLL_PATH=" & $DLL_PATH)
 
-    ; Clean up old maps.zip if it exists
     Local $sDllDir = StringRegExpReplace($DLL_PATH, "\\[^\\]+$", "")
-    Local $sOldZipPath = $sDllDir & "\maps.zip"
-    If FileExists($sOldZipPath) Then
-        If $g_bPathfinder_Debug Then Out("[Pathfinder] Deleting old maps.zip")
-        FileDelete($sOldZipPath)
-    EndIf
-
-    ; Check if maps.rar exists next to the DLL, download if missing
     Local $sMapsPath = $sDllDir & "\maps.rar"
     Local $sMapsDir = $sDllDir & "\maps"
+    Local $sVersionFile = $sDllDir & "\maps.version"
 
-    If Not FileExists($sMapsPath) And Not FileExists($sMapsDir) Then
-        If $g_bPathfinder_Debug Then Out("[Pathfinder] maps.rar not found at: " & $sMapsPath)
-        If $g_sPathfinder_MapsURL <> "" Then
-            If $g_bPathfinder_Debug Then Out("[Pathfinder] Downloading maps.rar...")
-            If Not Pathfinder_DownloadMaps($sMapsPath) Then
-                Out("[Pathfinder] ERROR: Download failed!")
-            EndIf
+    ; Check for map updates from GitHub releases
+    Local $aUpdate = _Pathfinder_CheckForMapUpdate($sDllDir)
+
+    If $aUpdate[0] Then
+        ; Update available - clean up old files
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] Cleaning up old map files...")
+        If FileExists($sMapsPath) Then FileDelete($sMapsPath)
+        If FileExists($sDllDir & "\maps.zip") Then FileDelete($sDllDir & "\maps.zip")
+        If FileExists($sMapsDir) Then DirRemove($sMapsDir, 1)
+
+        ; Download new maps.rar
+        If Pathfinder_DownloadMaps($sMapsPath, $aUpdate[1]) Then
+            ; Write version file on successful download
+            FileDelete($sVersionFile)
+            FileWrite($sVersionFile, $aUpdate[2])
+            If $g_bPathfinder_Debug Then Out("[Pathfinder] Version file updated to: " & $aUpdate[2])
         Else
-            If $g_bPathfinder_Debug Then Out("[Pathfinder] No download URL configured, skipping download")
+            Out("[Pathfinder] ERROR: Download of updated maps failed!")
+        EndIf
+    Else
+        ; No update - clean up legacy maps.zip if present
+        If FileExists($sDllDir & "\maps.zip") Then
+            If $g_bPathfinder_Debug Then Out("[Pathfinder] Deleting old maps.zip")
+            FileDelete($sDllDir & "\maps.zip")
+        EndIf
+
+        ; If maps don't exist at all (first install, no network)
+        If Not FileExists($sMapsPath) And Not FileExists($sMapsDir) Then
+            If $g_bPathfinder_Debug Then Out("[Pathfinder] maps.rar not found and no update info available")
         EndIf
     EndIf
 
@@ -68,30 +81,15 @@ Func Pathfinder_Initialize()
     Return $result[0]
 EndFunc
 
-; Converts a Google Drive share URL to a direct download URL
-; Input:  https://drive.google.com/file/d/{ID}/view?usp=...
-; Output: https://drive.usercontent.google.com/download?id={ID}&export=download&confirm=t
-Func _Pathfinder_GetDirectURL($a_sURL)
-    ; Extract Google Drive file ID
-    Local $aMatch = StringRegExp($a_sURL, "drive\.google\.com/file/d/([^/]+)", 1)
-    If Not @error Then
-        Return "https://drive.usercontent.google.com/download?id=" & $aMatch[0] & "&export=download&confirm=t"
-    EndIf
-    ; Not a Google Drive URL, return as-is (direct link)
-    Return $a_sURL
-EndFunc
-
-; Downloads maps.rar from $g_sPathfinder_MapsURL with progress bar
+; Downloads maps.rar from the given URL with progress bar
 ; Returns: True on success, False on failure
-Func Pathfinder_DownloadMaps($a_sDestPath)
-    If $g_sPathfinder_MapsURL = "" Then
-        If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: No URL configured")
+Func Pathfinder_DownloadMaps($a_sDestPath, $a_sDownloadURL)
+    If $a_sDownloadURL = "" Then
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: No URL provided")
         Return False
     EndIf
 
-    Local $sDownloadURL = _Pathfinder_GetDirectURL($g_sPathfinder_MapsURL)
-    If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: Direct URL = " & $sDownloadURL)
-
+    If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: URL = " & $a_sDownloadURL)
     If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: Dest = " & $a_sDestPath)
 
     ; Create progress GUI
@@ -101,7 +99,7 @@ Func Pathfinder_DownloadMaps($a_sDestPath)
     GUISetState(@SW_SHOW, $hGUI)
 
     ; Start background download
-    Local $hDownload = InetGet($sDownloadURL, $a_sDestPath, $INET_FORCERELOAD, $INET_DOWNLOADBACKGROUND)
+    Local $hDownload = InetGet($a_sDownloadURL, $a_sDestPath, $INET_FORCERELOAD, $INET_DOWNLOADBACKGROUND)
     If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: InetGet handle = " & $hDownload)
 
     ; Poll download progress until complete
@@ -133,15 +131,69 @@ Func Pathfinder_DownloadMaps($a_sDestPath)
         Return False
     EndIf
 
-    ; Verify file is not a Google Drive HTML page (< 10 MB means it's not the real file)
-    If $iBytesRead < 10485760 Then ; 10 MB
-        If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: FAILED - file too small (" & $iBytesRead & " bytes), likely a Google Drive error page")
+    ; Basic file size sanity check (maps.rar should be several MB)
+    If $iBytesRead < 1048576 Then ; 1 MB minimum
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: FAILED - file too small (" & $iBytesRead & " bytes)")
         FileDelete($a_sDestPath)
         Return False
     EndIf
 
     If $g_bPathfinder_Debug Then Out("[Pathfinder] DownloadMaps: File saved OK (" & Round($iBytesRead / 1048576) & " MB)")
     Return True
+EndFunc
+
+; Checks if maps need updating from GitHub releases
+; Returns: Array [needsUpdate (Bool), downloadURL (String), newVersion (String)]
+Func _Pathfinder_CheckForMapUpdate($a_sDllDir)
+    Local $aResult[3] = [False, "", ""]
+
+    ; Read local version
+    Local $sVersionFile = $a_sDllDir & "\maps.version"
+    Local $sLocalVersion = ""
+    If FileExists($sVersionFile) Then
+        $sLocalVersion = StringStripWS(FileRead($sVersionFile), 3)
+    EndIf
+    If $g_bPathfinder_Debug Then Out("[Pathfinder] Local maps version: '" & $sLocalVersion & "'")
+
+    ; Fetch latest release from GitHub API
+    Local $sApiURL = "https://api.github.com/repos/" & $g_sPathfinder_MapsRepo & "/releases/latest"
+    If $g_bPathfinder_Debug Then Out("[Pathfinder] Fetching: " & $sApiURL)
+
+    Local $sJson = BinaryToString(InetRead($sApiURL, 1))
+    If @error Or $sJson = "" Then
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] ERROR: Failed to fetch release info from GitHub")
+        Return $aResult
+    EndIf
+
+    ; Parse tag_name from JSON
+    Local $aTagMatch = StringRegExp($sJson, '"tag_name"\s*:\s*"([^"]+)"', 1)
+    If @error Then
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] ERROR: Could not parse tag_name from API response")
+        Return $aResult
+    EndIf
+    Local $sRemoteVersion = $aTagMatch[0]
+    If $g_bPathfinder_Debug Then Out("[Pathfinder] Remote maps version: '" & $sRemoteVersion & "'")
+
+    ; Parse browser_download_url for maps.rar asset
+    Local $aUrlMatch = StringRegExp($sJson, '"browser_download_url"\s*:\s*"([^"]*maps\.rar[^"]*)"', 1)
+    If @error Then
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] ERROR: Could not find maps.rar asset in release")
+        Return $aResult
+    EndIf
+    Local $sDownloadURL = $aUrlMatch[0]
+    If $g_bPathfinder_Debug Then Out("[Pathfinder] Download URL: " & $sDownloadURL)
+
+    ; Compare versions
+    If $sLocalVersion = $sRemoteVersion Then
+        If $g_bPathfinder_Debug Then Out("[Pathfinder] Maps are up to date")
+        Return $aResult
+    EndIf
+
+    If $g_bPathfinder_Debug Then Out("[Pathfinder] Map update available: '" & $sLocalVersion & "' -> '" & $sRemoteVersion & "'")
+    $aResult[0] = True
+    $aResult[1] = $sDownloadURL
+    $aResult[2] = $sRemoteVersion
+    Return $aResult
 EndFunc
 
 Func Pathfinder_Shutdown()
