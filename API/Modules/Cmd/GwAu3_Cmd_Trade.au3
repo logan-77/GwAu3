@@ -22,7 +22,7 @@ EndFunc   ;==>CancelTrade
 
 ;~ Description: Like pressing the "Change Offer" button
 Func Trade_ChangeOffer_()
-    Return Core_SendPacket(0x4, $GC_I_HEADER_TRADE_CANCEL_OFFER)
+    Return Core_SendPacket(0x4, $GC_I_HEADER_TRADE_CHANGE_OFFER)
 EndFunc   ;==>ChangeOffer
 
 ;~ $a_i_ItemID = ID of the item or item agent, $a_i_Quantity = Quantity
