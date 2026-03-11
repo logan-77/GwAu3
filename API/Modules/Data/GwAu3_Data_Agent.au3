@@ -413,8 +413,8 @@ Func Agent_GetAgentInfo($a_i_AgentID = -2, $a_s_Info = "")
                     ; Player - get name from PlayerArray[login_number]
                     Local $l_p_PlayerArray = World_GetWorldInfo("PlayerArray")
                     If $l_p_PlayerArray <> 0 Then
-                        ; Player struct size = 0x4C, name at offset 0x28 (decoded name pointer)
-                        Local $l_p_PlayerEntry = $l_p_PlayerArray + ($l_i_LoginNumber * 0x4C)
+                        ; Player struct size = 0x50, name at offset 0x28 (decoded name pointer)
+                        Local $l_p_PlayerEntry = $l_p_PlayerArray + ($l_i_LoginNumber * 0x50)
                         $l_p_NamePtr = Memory_Read($l_p_PlayerEntry + 0x28, "ptr")
                         If $l_p_NamePtr <> 0 Then
                             Return Memory_Read($l_p_NamePtr, "wchar[20]")
