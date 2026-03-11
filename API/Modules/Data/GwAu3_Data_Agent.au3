@@ -255,7 +255,7 @@ Func Agent_GetAgentInfo($a_i_AgentID = -2, $a_s_Info = "")
                 EndIf
             Next
             Return 0
-        Case "BuffCount"
+        Case "BondCount"
             Local $l_i_AgentID = Agent_ConvertID($a_i_AgentID)
             Local $l_a_Offset[4] = [0, 0x18, 0x2C, 0x508]
             Local $l_p_AgentEffectsBase = Memory_ReadPtr($g_p_BasePointer, $l_a_Offset)
@@ -269,8 +269,8 @@ Func Agent_GetAgentInfo($a_i_AgentID = -2, $a_s_Info = "")
                 Local $l_i_CurrentAgentID = Memory_Read($l_p_AgentEffects, "dword")
 
                 If $l_i_CurrentAgentID = $l_i_AgentID Then
-                    Local $l_p_BuffArray = $l_p_AgentEffects + 0x4
-                    Return Memory_Read($l_p_BuffArray + 0x8, "long")
+                    Local $l_p_BondArray = $l_p_AgentEffects + 0x4
+                    Return Memory_Read($l_p_BondArray + 0x8, "long")
                 EndIf
             Next
 
@@ -799,11 +799,13 @@ EndFunc   ;==>GetDistanceToXY
 Func Agent_GetAgentEffectArrayInfo($a_i_AgentID = -2, $a_s_Info = "")
     Local $l_p_Pointer = World_GetWorldInfo("AgentEffectsArray")
     Local $l_i_Size = World_GetWorldInfo("AgentEffectsArraySize")
-    Local $l_p_AgentPtr = 0
 
-    For $i = 0 To $l_i_Size
+    Local $l_p_AgentPtr = 0
+    Local $l_i_AgentID = Agent_ConvertID($a_i_AgentID)
+
+    For $i = 0 To $l_i_Size - 1
         Local $l_p_AgentEffects = $l_p_Pointer + ($i * 0x24)
-        If Memory_Read($l_p_AgentEffects, "dword") = Agent_ConvertID($a_i_AgentID) Then
+        If Memory_Read($l_p_AgentEffects, "dword") = $l_i_AgentID Then
             $l_p_AgentPtr = $l_p_AgentEffects
             ExitLoop
         EndIf
@@ -814,9 +816,9 @@ Func Agent_GetAgentEffectArrayInfo($a_i_AgentID = -2, $a_s_Info = "")
     Switch $a_s_Info
         Case "AgentID"
             Return Memory_Read($l_p_AgentPtr, "dword")
-        Case "BuffArray"
+        Case "BondArray"
             Return Memory_Read($l_p_AgentPtr + 0x4, "ptr")
-        Case "BuffArraySize"
+        Case "BondArraySize"
             Return Memory_Read($l_p_AgentPtr + 0x4 + 0x8, "long")
         Case "EffectArray"
             Return Memory_Read($l_p_AgentPtr + 0x14, "ptr")
@@ -848,13 +850,13 @@ Func Agent_GetAgentEffectInfo($a_i_AgentID = -2, $a_i_SkillID = 0, $a_s_Info = "
     If $a_s_Info = "" Then Return $l_p_EffectPtr
 
     Switch $a_s_Info
-;~         Case "SkillID"
-;~             Return Memory_Read($l_p_EffectPtr, "long")
+        ;~ Case "SkillID" ; serves no actual purpose as SkillID is a required arg
+        ;~     Return Memory_Read($l_p_EffectPtr, "long")
         Case "AttributeLevel"
             Return Memory_Read($l_p_EffectPtr + 0x4, "dword")
         Case "EffectID"
             Return Memory_Read($l_p_EffectPtr + 0x8, "long")
-        Case "CasterID" ; maintained enchantment
+        Case "CasterID" ; for Bonds
             Return Memory_Read($l_p_EffectPtr + 0xC, "dword")
         Case "Duration"
             Return Memory_Read($l_p_EffectPtr + 0x10, "float")
@@ -874,36 +876,45 @@ Func Agent_GetAgentEffectInfo($a_i_AgentID = -2, $a_i_SkillID = 0, $a_s_Info = "
     EndSwitch
 EndFunc
 
-Func Agent_GetAgentBuffInfo($a_i_AgentID = -2, $a_i_SkillID = 0, $a_s_Info = "")
-    Local $l_p_BuffArray = Agent_GetAgentEffectArrayInfo($a_i_AgentID, "BuffArray")
-    Local $l_i_BuffCount = Agent_GetAgentEffectArrayInfo($a_i_AgentID, "BuffArraySize")
+Func Agent_GetAgentBondInfo($a_i_AgentID = -2, $a_i_SkillID = 0, $a_i_TargetID = 0, $a_s_Info = "")
+    Local $l_p_BondArray = Agent_GetAgentEffectArrayInfo($a_i_AgentID, "BondArray")
+    Local $l_i_BondCount = Agent_GetAgentEffectArrayInfo($a_i_AgentID, "BondArraySize")
 
-    If $l_p_BuffArray = 0 Or $l_i_BuffCount = 0 Then Return 0
+    If $l_p_BondArray = 0 Or $l_i_BondCount = 0 Then Return 0
 
-    Local $l_p_BuffPtr = 0
-    For $j = 0 To $l_i_BuffCount - 1
-        Local $l_p_CurrentPtr = $l_p_BuffArray + ($j * 0x10)
+    Local $l_p_BondPtr = 0
+    Local $l_b_CheckTarget = ($a_i_TargetID <> 0)
+    Local $l_i_TargetID = 0
+
+    If $l_b_CheckTarget Then $l_i_TargetID = Agent_ConvertID($a_i_TargetID)
+
+    For $j = 0 To $l_i_BondCount - 1
+        Local $l_p_CurrentPtr = $l_p_BondArray + ($j * 0x10)
         Local $l_i_CurrentSkillID = Memory_Read($l_p_CurrentPtr, "long")
 
-        If $l_i_CurrentSkillID = $a_i_SkillID Then
-            $l_p_BuffPtr = $l_p_CurrentPtr
-            ExitLoop
+        If $l_i_CurrentSkillID <> $a_i_SkillID Then ContinueLoop
+
+        If $l_b_CheckTarget Then
+            If Memory_Read($l_p_CurrentPtr + 0xC, "dword") <> $l_i_TargetID Then ContinueLoop
         EndIf
+
+        $l_p_BondPtr = $l_p_CurrentPtr
+        ExitLoop
     Next
 
-    If $l_p_BuffPtr = 0 Then Return 0
-    If $a_s_Info = "" Then Return $l_p_BuffPtr
+    If $l_p_BondPtr = 0 Then Return 0
+    If $a_s_Info = "" Then Return $l_p_BondPtr
 
     Switch $a_s_Info
-;~         Case "SkillID"
-;~             Return Memory_Read($l_p_BuffPtr, "long")
+        ;~ Case "SkillID" ; serves no actual purpose as SkillID is a required arg
+        ;~     Return Memory_Read($l_p_BondPtr, "long")
         Case "h0004"
-            Return Memory_Read($l_p_BuffPtr + 0x4, "dword")
-        Case "BuffID"
-            Return Memory_Read($l_p_BuffPtr + 0x8, "long")
+            Return Memory_Read($l_p_BondPtr + 0x4, "dword")
+        Case "BondID"
+            Return Memory_Read($l_p_BondPtr + 0x8, "long")
         Case "TargetAgentID"
-            Return Memory_Read($l_p_BuffPtr + 0xC, "dword")
-        Case "HasBuff"
+            Return Memory_Read($l_p_BondPtr + 0xC, "dword")
+        Case "HasBond"
             Return True
         Case Else
             Return 0
