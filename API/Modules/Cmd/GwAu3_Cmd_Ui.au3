@@ -138,7 +138,7 @@ EndFunc   ;==>Ui_KickHero
 
 ;~ Description: Kicks all heroes from the group.
 Func Ui_KickAllHeroes()
-    DllStructSetData($g_d_KickHero, 2, 0x26)
+    DllStructSetData($g_d_KickHero, 2, 0x28)
     Core_Enqueue($g_p_KickHero, 8)
 EndFunc   ;==>Ui_KickAllHeroes
 

@@ -12,7 +12,7 @@ EndFunc   ;==>Party_KickHero
 
 ;~ Description: Kicks all heroes from the party.
 Func Party_KickAllHeroes()
-    Return Core_SendPacket(0x8, $GC_I_HEADER_HERO_KICK, 0x26)
+    Return Core_SendPacket(0x8, $GC_I_HEADER_HERO_KICK, 0x28)
 EndFunc   ;==>Party_KickAllHeroes
 
 ;~ Description: Add a henchman to the party.
