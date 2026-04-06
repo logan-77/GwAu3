@@ -3654,6 +3654,9 @@ Global Const $GC_I_SKILL_ID_SHADOW_THEFT = 3428
 Global Const $GC_I_SKILL_ID_WEAPONS_OF_THREE_FORGES = 3429
 Global Const $GC_I_SKILL_ID_VOW_OF_REVOLUTION = 3430
 Global Const $GC_I_SKILL_ID_HEROIC_REFRAIN = 3431
+; Global Const $GC_I_SKILL_ID_UNKNOWN = 3432
+; Global Const $GC_I_SKILL_ID_UNKNOWN = 3433
+Global Const $GC_I_SKILL_ID_REFORGED_MODE = 3434
 #EndRegion SkillIDs
 
 #Region Skill Array Info
@@ -7407,5 +7410,8 @@ Global Const $GC_AMX2_SKILL_DATA[$GC_I_SKILL_DATA_ROWS][$GC_I_SKILL_DATA_COLUMNS
 [3429, "Weapons of Three Forges", 10, 13, 0, 25, 524292, 0, 0, 0, 0, 0, 8, 36, 3433, 0, 0, 1, 0, 2, 0.75, 3, 20, 15, 0, 0, 0, 0, 1000, 0], _
 [3430, "Vow of Revolution", 10, 13, 0, 6, 524292, 0, 0, 0, 0, 0, 10, 44, 3433, 0, 0, 1, 0, 1, 0, 3, 10, 20, 1, 5, 0, 0, 0, 0], _
 [3431, "Heroic Refrain", 5, 6.5, 0, 28, 524292, 0, 0, 0, 0, 0, 9, 40, 3433, 0, 3, 1, 0, 1, 0.75, 3, 15, 10, 1, 3, 0, 0, 0, 0], _
-[3432, "unknown", 0, 0, 0, 17, 8192, 0, 0, 0, 0, 0, 0, 51, 3433, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+[3432, "unknown", 0, 0, 0, 17, 8192, 0, 0, 0, 0, 0, 0, 51, 3433, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], _
+[3433, "unknown", 0, 0, 0, 17, 8192, 0, 0, 0, 0, 0, 0, 51, 3433, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], _
+[3434, "Reforged Mode", 0, 0, 0, 18, 1048576, 0, 0, 0, 0, 0, 0, 51, 3433, 0, 0, 0, 0, 0, 0, 196608, 196608, 0, 0, 0, 0, 0, 0, 0] _
+]
 #EndRegion Skill Array
