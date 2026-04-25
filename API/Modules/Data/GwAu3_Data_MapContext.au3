@@ -647,7 +647,7 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 					Local $l_ai_Coords[2] = [6395, -13127]
 				Case $GC_I_MAP_ID_SHENZUN_TUNNELS
 					Local $l_ai_Coords[2] = [19991, -327]
-				Case $GC_I_MAP_ID_WAIJUN_BAZAAR
+				Case $GC_I_MAP_ID_WAJJUN_BAZAAR
 					Local $l_ai_Coords[2] = [-16387, 8323]
 			EndSwitch
 
@@ -1707,7 +1707,7 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 					Local $l_ai_Coords[2] = [-4854, -13322]
 			EndSwitch
 
-		Case $GC_I_MAP_ID_WAIJUN_BAZAAR
+		Case $GC_I_MAP_ID_WAJJUN_BAZAAR
 			Switch $a_i_ToMapID
 				Case $GC_I_MAP_ID_NAHPUI_QUARTER_OUTPOST
 					Local $l_ai_Coords[2] = [9049, -19979]
@@ -1741,7 +1741,7 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 					Local $l_ai_Coords[2] = [1190, 18178]
 				Case $GC_I_MAP_ID_VIZUNAH_SQUARE_LOCAL_QUARTER
 					Local $l_ai_Coords[2] = [19807, 17152]
-				Case $GC_I_MAP_ID_WAIJUN_BAZAAR
+				Case $GC_I_MAP_ID_WAJJUN_BAZAAR
 					Local $l_ai_Coords[2] = [-16876, -6821]
 			EndSwitch
 		Case $GC_I_MAP_ID_SHING_JEA_MONASTERY, $GC_I_MAP_ID_SHING_JEA_MONASTERY_CANTHAN_NEW_YEAR, $GC_I_MAP_ID_SHING_JEA_MONASTERY_DRAGON_FESTIVAL
@@ -1973,7 +1973,7 @@ Func Map_GetExitPortalsCoords($a_i_FromMapID, $a_i_ToMapID)
 					Local $l_ai_Coords[2] = [16684, 20196]
 				Case $GC_I_MAP_ID_KAINENG_DOCKS
 					Local $l_ai_Coords[2] = [11643, 19336]
-				Case $GC_I_MAP_ID_WAIJUN_BAZAAR
+				Case $GC_I_MAP_ID_WAJJUN_BAZAAR
 					Local $l_ai_Coords[2] = [11480, 15251]
 			EndSwitch
 
@@ -3422,11 +3422,11 @@ Func Map_GetConnectedMaps($a_i_MapID)
 		Case $GC_I_MAP_ID_BUKDEK_BYWAY
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_KAINENG_CENTER, $GC_I_MAP_ID_THE_UNDERCITY, $GC_I_MAP_ID_SHADOWS_PASSAGE, $GC_I_MAP_ID_THE_MARKETPLACE, $GC_I_MAP_ID_VIZUNAH_SQUARE_FOREIGN_QUARTER, $GC_I_MAP_ID_XAQUANG_SKYWAY]
 		Case $GC_I_MAP_ID_XAQUANG_SKYWAY
-			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_SENJIS_CORNER, $GC_I_MAP_ID_SHENZUN_TUNNELS, $GC_I_MAP_ID_WAIJUN_BAZAAR]
-		Case $GC_I_MAP_ID_WAIJUN_BAZAAR
+			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_SENJIS_CORNER, $GC_I_MAP_ID_SHENZUN_TUNNELS, $GC_I_MAP_ID_WAJJUN_BAZAAR]
+		Case $GC_I_MAP_ID_WAJJUN_BAZAAR
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_NAHPUI_QUARTER_OUTPOST, $GC_I_MAP_ID_THE_MARKETPLACE, $GC_I_MAP_ID_THE_UNDERCITY, $GC_I_MAP_ID_XAQUANG_SKYWAY]
 		Case $GC_I_MAP_ID_THE_UNDERCITY
-			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_VIZUNAH_SQUARE_LOCAL_QUARTER, $GC_I_MAP_ID_WAIJUN_BAZAAR]
+			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_VIZUNAH_SQUARE_LOCAL_QUARTER, $GC_I_MAP_ID_WAJJUN_BAZAAR]
 		Case $GC_I_MAP_ID_SHADOWS_PASSAGE
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_DRAGONS_THROAT_OUTPOST]
 		Case $GC_I_MAP_ID_SHENZUN_TUNNELS
@@ -3446,7 +3446,7 @@ Func Map_GetConnectedMaps($a_i_MapID)
 		Case $GC_I_MAP_ID_KAINENG_DOCKS
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_THE_MARKETPLACE, $GC_I_MAP_ID_SEITUNG_HARBOR]
 		Case $GC_I_MAP_ID_THE_MARKETPLACE
-			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_KAINENG_DOCKS, $GC_I_MAP_ID_WAIJUN_BAZAAR]
+			Local $l_a_Connected[] = [$GC_I_MAP_ID_BUKDEK_BYWAY, $GC_I_MAP_ID_KAINENG_DOCKS, $GC_I_MAP_ID_WAJJUN_BAZAAR]
 		Case $GC_I_MAP_ID_MAATU_KEEP
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_PONGMEI_VALLEY, $GC_I_MAP_ID_SHENZUN_TUNNELS]
 
@@ -3518,7 +3518,7 @@ Func Map_GetConnectedMaps($a_i_MapID)
 		Case $GC_I_MAP_ID_ZEN_DAIJUN_EXPLORABLE
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_SEITUNG_HARBOR]
 		Case $GC_I_MAP_ID_NAHPUI_QUARTER_OUTPOST
-			Local $l_a_Connected[] = [$GC_I_MAP_ID_SENJIS_CORNER, $GC_I_MAP_ID_WAIJUN_BAZAAR]
+			Local $l_a_Connected[] = [$GC_I_MAP_ID_SENJIS_CORNER, $GC_I_MAP_ID_WAJJUN_BAZAAR]
 		Case $GC_I_MAP_ID_TAHNNAKAI_TEMPLE_OUTPOST
 			Local $l_a_Connected[] = [$GC_I_MAP_ID_SHENZUN_TUNNELS]
 		Case $GC_I_MAP_ID_ARBORSTONE_OUTPOST
