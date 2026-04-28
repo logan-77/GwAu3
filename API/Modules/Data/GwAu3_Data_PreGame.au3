@@ -9,11 +9,11 @@ Func PreGame_FrameID()
 EndFunc
 
 Func PreGame_ChosenCharacter()
-	Return Memory_Read(PreGame_Ptr() + 0xD4, 'dword')
+	Return Memory_Read(PreGame_Ptr() + 0xD8, 'dword')
 EndFunc
 
 Func PreGame_LoginCharacterArray()
-	Return Memory_Read(PreGame_Ptr() + 0xDC, 'ptr')
+	Return Memory_Read(PreGame_Ptr() + 0xE0, 'ptr')
 EndFunc
 
 Func PreGame_CharName($a_i_Index) ;from 0 to max character
