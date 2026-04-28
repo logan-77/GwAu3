@@ -205,25 +205,25 @@ Func Map_GetCharacterInfo($a_s_Info = "")
         Case "Token2" ; Player ID
             Return Memory_Read($l_p_Ptr + 0x1B8, "long")
         Case "DistrictNumber"
-            Return Memory_Read($l_p_Ptr + 0x220, "long")
+            Return Memory_Read($l_p_Ptr + 0x228, "long") ; 0x220
         Case "Language"
-            Return Memory_Read($l_p_Ptr + 0x224, "long")
+            Return Memory_Read($l_p_Ptr + 0x22C, "long") ; 0x224
         Case "Region"
             Return Utils_MakeInt32(Memory_Read($g_p_Region))
         Case "ObserveMapID"
-            Return Memory_Read($l_p_Ptr + 0x228, "long")
+            Return Memory_Read($l_p_Ptr + 0x230, "long") ; 0x228
         Case "CurrentMapID"
-            Return Memory_Read($l_p_Ptr + 0x22C, "long")
+            Return Memory_Read($l_p_Ptr + 0x234, "long") ; 0x22C
         Case "ObserveMapType"
-            Return Memory_Read($l_p_Ptr + 0x230, "long")
+            Return Memory_Read($l_p_Ptr + 0x238, "long") ; 0x230
         Case "CurrentMapType"
-            Return Memory_Read($l_p_Ptr + 0x234, "long")
+            Return Memory_Read($l_p_Ptr + 0x23C, "long") ; 0x234
         Case "ObserverMatch"
-            Return Memory_Read($l_p_Ptr + 0x24C, "ptr")
+            Return Memory_Read($l_p_Ptr + 0x254, "ptr") ; 0x24C
         Case "PlayerFlags"
-            Return Memory_Read($l_p_Ptr + 0x2A0, "long")
+            Return Memory_Read($l_p_Ptr + 0x2A8, "long") ; 0x2A0
         Case "PlayerNumber"
-            Return Memory_Read($l_p_Ptr + 0x2A4, "long")
+            Return Memory_Read($l_p_Ptr + 0x2AC, "long") ; 0x2A4
     EndSwitch
 
     Return 0

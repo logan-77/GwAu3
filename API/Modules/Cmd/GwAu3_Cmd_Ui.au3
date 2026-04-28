@@ -138,13 +138,13 @@ EndFunc   ;==>Ui_KickHero
 
 ;~ Description: Kicks all heroes from the group.
 Func Ui_KickAllHeroes()
-    DllStructSetData($g_d_KickHero, 2, 0x27)
+    DllStructSetData($g_d_KickHero, 2, 0x28)
     Core_Enqueue($g_p_KickHero, 8)
 EndFunc   ;==>Ui_KickAllHeroes
 
 ;~ Description: Leaves group via Party Formation window. Optional flag to keep/kick heroes.
 Func Ui_LeaveGroup($a_b_KickAllHeroes = True)
-    DllStructSetData($g_d_LeaveGroup, 2, 0x27)
+    DllStructSetData($g_d_LeaveGroup, 2, 0x28)
     Core_Enqueue($g_p_LeaveGroup, 8)
     If $a_b_KickAllHeroes Then Ui_KickAllHeroes()
 EndFunc   ;==>Ui_LeaveGroup
