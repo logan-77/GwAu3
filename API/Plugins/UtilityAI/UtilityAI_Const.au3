@@ -1,4 +1,5 @@
 #include-once
+Global $g_b_UAI_Debug = False
 
 Global $g_i_BestTarget = 0
 Global $g_i_ForceTarget = 0

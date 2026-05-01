@@ -1,5 +1,9 @@
 #include-once
 
+Func _D($msg)
+	If $g_b_UAI_Debug Then _D(" " & $msg)
+EndFunc
+
 #Region === Skill Functions ===
 
 ; Get skill slot by skill ID

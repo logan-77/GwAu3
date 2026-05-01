@@ -5,11 +5,11 @@
 ;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, -1234)   			; Avoid 1234
 ;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, [1234, -5678])  		; Priority 1234 + Avoid 5678
 ;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, [1234, -5678], True) ; Same + KillOnly
-Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, $a_v_PlayerNumber = 0, $a_b_KillOnly = False)
+Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "")
 	$g_i_BestTarget = 0
 	$g_i_ForceTarget = 0
 	$g_i_FightMode = $a_i_FightMode
-	$a_b_UseSwitchSet = $g_b_CacheWeaponSet
+	$g_b_CacheWeaponSet = $a_b_UseSwitchSet
 	$g_v_AvoidPlayerNumbers = -1
 
 	Local $l_i_MyOldMap = Map_GetMapID(), $l_i_MapLoadingOld = Map_GetInstanceInfo("Type")
@@ -60,7 +60,7 @@ Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 35
 		EndIf
 		UAI_UseSkills($a_f_x, $a_f_y, $a_f_AggroRange, $a_f_MaxDistanceToXY)
 		Sleep(128)
-	Until UAI_CountEnemyInPartyAggroRange($a_f_AggroRange) = 0 Or Agent_GetAgentInfo(-2, "IsDead") Or Party_IsWiped() Or Map_GetMapID() <> $l_i_MyOldMap Or Map_GetInstanceInfo("Type") <> $l_i_MapLoadingOld
+	Until UAI_CountEnemyInPartyAggroRange($a_f_AggroRange) = 0 Or Agent_GetAgentInfo(-2, "IsDead") Or Party_IsWiped() Or Map_GetMapID() <> $l_i_MyOldMap Or Map_GetInstanceInfo("Type") <> $l_i_MapLoadingOld Or ($a_s_ExitCallback <> "" And Call($a_s_ExitCallback))
 EndFunc   ;==>UAI_Fight
 
 ;~ Use this function to cast all of your skills or skills of a certain type.
