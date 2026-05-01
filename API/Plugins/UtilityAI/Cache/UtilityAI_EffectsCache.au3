@@ -142,7 +142,7 @@ Func UAI_CacheAgentBonds()
 				For $k = 0 To $l_i_BondCount - 1
 					$g_amx3_BondsCache[$i][$k][$GC_UAI_BOND_SkillID] = $l_amx2_AllBonds[$k][0]
 					$g_amx3_BondsCache[$i][$k][$GC_UAI_BOND_Unknown] = $l_amx2_AllBonds[$k][1]
-					$g_amx3_BondsCache[$i][$k][$GC_UAI_BOND_BondID] = $l_amx2_AllBonds[$k][2]
+					$g_amx3_BondsCache[$i][$k][$GC_UAI_BOND_BONDID] = $l_amx2_AllBonds[$k][2]
 					$g_amx3_BondsCache[$i][$k][$GC_UAI_BOND_TargetAgentID] = $l_amx2_AllBonds[$k][3]
 				Next
 
