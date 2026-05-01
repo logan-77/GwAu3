@@ -1,8 +1,9 @@
-# COMPLETE SMARTCAST SYSTEM DOCUMENTATION
+# COMPLETE UTILITYAI SYSTEM DOCUMENTATION
+
 ## Technical and Customization Guide
 
-*Created by Greg-76 (Alusion)*
-*Complete Documentation - Version 2.0*
+_Created by Greg-76 (Alusion)_
+_Complete Documentation - Version 2.0_
 
 ---
 
@@ -27,24 +28,30 @@
 
 ### Quick Start
 
-**1. Include the SmartCast module in your script:**
+**1. UtilityAI is included automatically** via the main GwAu3 entry point:
 
-```autoit
-#include "API/SmartCast/_UtilityAI.au3"
+```
+API/_GwAu3.au3 → Plugins/_Plugins.au3 → UtilityAI/_UtilityAI.au3
 ```
 
-**2. Initialize the skillbar cache when entering an explorable area:**
+Any script that includes `API/_GwAu3.au3` already has UtilityAI available — no separate include needed. If for some reason you need to include it manually:
 
 ```autoit
-UAI_CacheSkillBar()
+#include "API/Plugins/UtilityAI/_UtilityAI.au3"
+```
+
+**2. Initialize the skillbar cache once when arriving in an explorable area:**
+
+```autoit
+Cache_SkillBar()  ; picks up any build changes from the previous outpost
 ```
 
 **3. Start combat using one of these methods:**
 
 ```autoit
 ; Method 1: Full combat loop (recommended)
-; Fights until all enemies are dead or player dies
-UAI_Fight($x, $y, $aggroRange, $maxDistance, $fightMode)
+; Fights until all enemies are dead or an exit condition is met
+UAI_Fight($x, $y, $aggroRange, $maxDistance, $fightMode, $useSwitchSet, $playerNumber, $killOnly, $exitCallback)
 
 ; Method 2: Single skill cycle
 ; Use in your own loop for more control
@@ -53,13 +60,17 @@ UAI_UseSkills($x, $y, $aggroRange, $maxDistance)
 
 ### UAI_Fight() Parameters
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `$a_f_X` | required | X coordinate of combat center |
-| `$a_f_Y` | required | Y coordinate of combat center |
-| `$a_f_AggroRange` | 1320 | Maximum distance to engage enemies |
-| `$a_f_MaxDistanceToXY` | 3500 | Max distance before exiting combat |
-| `$a_i_FightMode` | `$g_i_FinisherMode` | Combat mode (see below) |
+| Parameter              | Default             | Description                                                                                            |
+| ---------------------- | ------------------- | ------------------------------------------------------------------------------------------------------ |
+| `$a_f_X`               | required            | X coordinate of combat center                                                                          |
+| `$a_f_Y`               | required            | Y coordinate of combat center                                                                          |
+| `$a_f_AggroRange`      | 1320                | Maximum distance to engage enemies                                                                     |
+| `$a_f_MaxDistanceToXY` | 3500                | Max distance before exiting combat                                                                     |
+| `$a_i_FightMode`       | `$g_i_FinisherMode` | Combat mode (see below)                                                                                |
+| `$a_b_UseSwitchSet`    | `False`             | Enable automatic weapon set switching (sets `$g_b_CacheWeaponSet`)                                     |
+| `$a_v_PlayerNumber`    | `0`                 | Priority target (positive) or target to avoid (negative). Accepts a single value or an array.          |
+| `$a_b_KillOnly`        | `False`             | If `True` and a priority target is set, exits if that target is not found or already dead              |
+| `$a_s_ExitCallback`    | `""`                | Name of a callback function (string) called each iteration — exits the fight loop if it returns `True` |
 
 ### Combat Modes
 
@@ -68,22 +79,34 @@ $g_i_FinisherMode = 0  ; Target low HP enemies to secure kills
 $g_i_PressureMode = 1  ; Target high HP enemies to spread damage
 ```
 
+### Cache Management Summary
+
+| What                | When to call                           | Automatic?                             |
+| ------------------- | -------------------------------------- | -------------------------------------- |
+| `Cache_SkillBar()`  | Once on arriving in an explorable area | No — call it yourself                  |
+| `UAI_UpdateCache()` | Each combat iteration                  | Yes — called internally by `UAI_Fight` |
+
+**You never need to call `UAI_UpdateCache()` or `UAI_UpdateAgentCache()` manually** when using `UAI_Fight` — it handles its own cache refresh every iteration. Only `Cache_SkillBar()` needs to be called explicitly, once per explorable zone.
+
+Any code outside of `UAI_Fight` (movement, loot, custom logic) that needs agent data should use `Agent_GetAgentInfo()` directly — not the UAI cache, which is only guaranteed fresh inside the fight loop.
+
 ### Minimal Example Script
 
 ```autoit
-#include "API/SmartCast/_UtilityAI.au3"
+#include "API/_GwAu3.au3"              ; UtilityAI included automatically
+; or manually:
+; #include "API/Plugins/UtilityAI/_UtilityAI.au3"
 
 ; Wait for map load
 While Map_GetInstanceInfo("Type") <> $GC_I_MAP_TYPE_EXPLORABLE
     Sleep(100)
 WEnd
 
-; Initialize skillbar cache
-UAI_CacheSkillBar()
+; Initialize skillbar cache once on zone entry
+Cache_SkillBar()
 
 ; Main loop
 While True
-    ; Get current position
     Local $x = Agent_GetAgentInfo(-2, "X")
     Local $y = Agent_GetAgentInfo(-2, "Y")
 
@@ -93,15 +116,49 @@ While True
 WEnd
 ```
 
+### Bot with Main Loop Integration Example
+
+Typical pattern for a bot that travels between zones and has its own main loop (movement, loot, etc.):
+
+```autoit
+#include "API/_GwAu3.au3"
+
+Global $g_prevMapType = -1
+
+While True
+    Sleep(250)
+
+    Local $currentMapType = Map_GetInstanceInfo("Type")
+
+    ; Detect zone entry — call Cache_SkillBar() once on arriving in explorable
+    If $g_prevMapType = $GC_I_MAP_TYPE_LOADING And $currentMapType = $GC_I_MAP_TYPE_EXPLORABLE Then
+        Cache_SkillBar()
+    EndIf
+    $g_prevMapType = $currentMapType
+
+    If $currentMapType <> $GC_I_MAP_TYPE_EXPLORABLE Then ContinueLoop
+
+    ; Your bot logic — UAI_Fight manages its own cache internally
+    Local $x = Agent_GetAgentInfo(-2, "X")
+    Local $y = Agent_GetAgentInfo(-2, "Y")
+
+    UAI_Fight($x, $y, 1320, 3500, $g_i_FinisherMode)
+
+    ; Movement, loot, etc.
+    DoMovement()
+    PickUpLoot()
+WEnd
+```
+
 ### Skill Bar Recommendation
 
 Place skills in order of priority (slot 1 = highest priority):
 
-| Priority | Slots | Skill Types |
-|----------|-------|-------------|
-| High | 1-3 | Interrupts, key debuffs, finishers |
-| Medium | 4-6 | Damage skills, conditions |
-| Low | 7-8 | Self-buffs, situational, resurrection |
+| Priority | Slots | Skill Types                           |
+| -------- | ----- | ------------------------------------- |
+| High     | 1-3   | Interrupts, key debuffs, finishers    |
+| Medium   | 4-6   | Damage skills, conditions             |
+| Low      | 7-8   | Self-buffs, situational, resurrection |
 
 The system processes slots 1→8 sequentially. The first usable skill that meets its conditions will be cast.
 
@@ -109,9 +166,10 @@ The system processes slots 1→8 sequentially. The first usable skill that meets
 
 ## 1. OVERVIEW
 
-### What is SmartCast?
+### What is UtilityAI?
 
-**SmartCast** is an intelligent combat automation system for Guild Wars. It automatically manages:
+**UtilityAI** is an intelligent combat automation system for Guild Wars. It automatically manages:
+
 - Optimal targeting for each skill
 - Skill usage conditions
 - Resource management (energy, adrenaline, health)
@@ -122,13 +180,14 @@ The system processes slots 1→8 sequentially. The first usable skill that meets
 
 ### Weapon Set Switching
 
-The SmartCast system integrates an **automatic weapon set switching** feature. This feature allows:
+The UtilityAI system integrates an **automatic weapon set switching** feature. This feature allows:
 
 - **Automatic weapon switching** based on the skill being used
 - **Weapon set adaptation** according to skill modifiers (attribute, profession, type)
 - **Build optimization** by allowing the use of skills requiring different weapons in the same skill bar
 
 **Usage examples:**
+
 - A hybrid build could use a 40/40 for spells and automatically switch to a +20% enchantment bonus for enchantments.
 - An assassin could alternate between daggers for attacks and a hammer depending on the skills.
 - A monk low on energy can switch to a set that gives more energy. (Same for HP)
@@ -137,7 +196,8 @@ This functionality is managed by the `Equipment/UtilityAI_WeaponSets.au3` module
 
 ### System Philosophy
 
-SmartCast works on a principle of **separation of concerns**:
+UtilityAI works on a principle of **separation of concerns**:
+
 - **Each skill** has its own targeting function (`BestTarget_`)
 - **Each skill** has its own condition function (`CanUse_`)
 - The system **caches** information to optimize performance via the **UAI Cache System**
@@ -149,16 +209,16 @@ SmartCast works on a principle of **separation of concerns**:
 ### File Structure
 
 ```
-API/SmartCast/
+API/Plugins/UtilityAI/
 │
 ├── _UtilityAI.au3              # Main entry point (includes all modules)
-├── SmartCast_Const.au3         # Constants and global variables
+├── UtilityAI_Const.au3         # Constants and global variables (incl. $g_b_UAI_Debug)
 │
 ├── Core/                       # Core System
 │   ├── _Core.au3               # Entry point for core modules
 │   ├── UtilityAI_Core.au3      # System core (combat loop): UAI_Fight(), UAI_UseSkills()
 │   ├── UtilityAI_CanCast.au3   # Resource checks: UAI_CanCast(), UAI_CanAutoAttack()
-│   └── UtilityAI_Utils.au3     # Utility functions
+│   └── UtilityAI_Utils.au3     # Utility functions (incl. _D() debug helper)
 │
 ├── Cache/                      # UAI Cache System
 │   ├── _Cache.au3              # Entry point for cache modules
@@ -215,11 +275,13 @@ The `Skills/` folder contains **skill-type specific implementations** of `BestTa
 - Maintain consistent targeting patterns within skill categories
 
 **How it works:**
+
 1. `Cache/UtilityAI_BestTargetCache.au3` and `Cache/UtilityAI_CanUseCache.au3` act as **dispatchers**
 2. They determine the skill ID and return the appropriate function name from `Skills/`
 3. Each `UtilityAI_<SkillType>.au3` file contains the actual `BestTarget_` and `CanUse_` implementations
 
 **Example:** When casting "Flare" (a Spell):
+
 1. `UAI_GetBestTargetFunc()` identifies it as Flare and returns "BestTarget_Flare"
 2. The function is called dynamically from `UtilityAI_Spell.au3`
 3. `BestTarget_Flare()` in that file returns the target
@@ -263,20 +325,32 @@ Global $g_a_VisEffectsCache[1][1][1]      ; 3D array [AgentIndex][VisEffectIndex
 ### 3.1 UAI_Fight() Function - Main Entry Point
 
 ```autoit
-Func UAI_Fight($a_f_X, $a_f_Y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500)
+Func UAI_Fight($a_f_X, $a_f_Y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, _
+               $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, _
+               $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "")
 ```
 
 **Parameters:**
+
 - `$a_f_X, $a_f_Y` : Reference coordinates for combat
 - `$a_f_AggroRange` : Maximum aggro distance (default: 1320)
 - `$a_f_MaxDistanceToXY` : Max distance before leaving combat (default: 3500)
+- `$a_i_FightMode` : Combat mode — `$g_i_FinisherMode` (0) or `$g_i_PressureMode` (1)
+- `$a_b_UseSwitchSet` : Enable automatic weapon set switching (sets `$g_b_CacheWeaponSet`)
+- `$a_v_PlayerNumber` : Priority target (positive) or target to avoid (negative); single value or array
+- `$a_b_KillOnly` : If `True` and a priority target is set, exits when that target dies or is not found
+- `$a_s_ExitCallback` : Name of a callback function (string) — exits the loop if it returns `True`
 
 **Operation:**
-1. Loop until:
+
+1. Loop until any exit condition is met:
    - All enemies are dead
    - Player is dead
    - Party is wiped
    - Map/instance change
+   - Player moved beyond `$a_f_MaxDistanceToXY` from reference point
+   - `$a_b_KillOnly = True` and priority target is dead/missing
+   - `$a_s_ExitCallback` is set and calling it returns `True`
 2. Calls `UAI_UseSkills()` each iteration
 3. 32ms sleep between each iteration
 
@@ -370,6 +444,7 @@ Func UAI_UseSkillEX($a_i_SkillSlot, $a_i_AgentID = -2)
 ```
 
 **Sequence:**
+
 1. **Change target** if necessary (if target ≠ self)
 2. **Switch weapon set** if enabled and beneficial
 3. **Use skill** via `Skill_UseSkill($a_i_SkillSlot, $a_i_AgentID)`
@@ -470,10 +545,12 @@ Caches **static** skill data that doesn't change during gameplay (costs, duratio
 #### Update Function
 
 ```autoit
-Func UAI_CacheSkillBar()
+Func UAI_CacheSkillBar()  ; internal — reads static skill data into cache
 ```
 
-Call this once when entering a map or when the skillbar changes (form transformation).
+> **From your script, call `Cache_SkillBar()` instead.** It wraps `UAI_CacheSkillBar()` and also populates the `BestTarget`/`CanUse` dispatch caches and determines weapon sets. `UAI_CacheSkillBar()` is used internally (e.g. on form change).
+
+Call `Cache_SkillBar()` once when arriving in an explorable area — it will pick up any build changes made in the previous outpost. It is safe to call multiple times (skips silently if the map is still loading). Re-caching on Ursan/Raven/Volfen form changes is handled automatically by the system internally via `Cache_FormChangeBuild()`.
 
 #### Accessor Function
 
@@ -712,8 +789,8 @@ UAI_CacheAgentEffects()          ; Update effects
 UAI_CacheAgentBonds()            ; Update bonds
 UAI_CacheAgentVisibleEffects()   ; Update visible effects
 
-; On map load or form change:
-UAI_CacheSkillBar()              ; Update static skill data
+; Once when arriving in an explorable area:
+Cache_SkillBar()                 ; Static skill data + dispatch caches + weapon sets
 ```
 
 ---
@@ -758,6 +835,7 @@ EndFunc
 ```
 
 **Used for:**
+
 - Personal buffs (enchantments, stances)
 - Healing signets
 - Forms (Ursan, etc.)
@@ -771,6 +849,7 @@ EndFunc
 ```
 
 **Used for:**
+
 - Melee attacks
 - Basic damage spells
 
@@ -783,6 +862,7 @@ EndFunc
 ```
 
 **Used for:**
+
 - Healing spells
 - Protective buffs
 
@@ -795,6 +875,7 @@ EndFunc
 ```
 
 **Used for:**
+
 - Condition/hex removal
 - Situational skills
 
@@ -810,13 +891,14 @@ EndFunc
 ```
 
 **Used for:**
+
 - AOE damage spells
 - Ward placement
 - Well placement
 
 ### 5.4 Combat Modes
 
-The SmartCast system supports two combat modes that affect target selection:
+The UtilityAI system supports two combat modes that affect target selection:
 
 ```autoit
 Global $g_i_FinisherMode = 0  ; Target low HP enemies to secure kills
@@ -1574,37 +1656,60 @@ EndFunc
 
 ### 11.3 Debugging
 
-#### A. Use Out() for logging
+#### A. Debug flag and \_D() helper
+
+The UtilityAI system provides a global debug flag and a wrapper function to avoid spamming logs in production:
+
+```autoit
+; In UtilityAI_Const.au3
+Global $g_b_UAI_Debug = False
+```
+
+```autoit
+; In Core/UtilityAI_Utils.au3
+Func _D($msg)
+    If $g_b_UAI_Debug Then Out("[DEBUG] " & $msg)
+EndFunc
+```
+
+Enable debug output in your script before calling UAI functions:
+
+```autoit
+$g_b_UAI_Debug = True
+UAI_Fight(...)
+```
+
+`_D()` is available everywhere UtilityAI is included. Use it instead of raw `Out()` for debug-only messages so they don't appear in normal operation.
+
+#### B. Use Out() for logging
 
 ```autoit
 Func BestTarget_Skill($a_f_AggroRange)
     Local $l_i_Target = UAI_GetNearestAgent(-2, $a_f_AggroRange, "UAI_Filter_IsLivingEnemy")
 
-    ; Debug log
-    Out("BestTarget_Skill : Target = " & $l_i_Target &
-        " (HP: " & UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) & ")")
+    ; Debug log (only shown when $g_b_UAI_Debug = True)
+    _D("BestTarget_Skill : Target = " & $l_i_Target & _
+       " (HP: " & UAI_GetAgentInfoByID($l_i_Target, $GC_UAI_AGENT_HP) & ")")
 
     Return $l_i_Target
 EndFunc
 ```
 
-#### B. Test conditions individually
+#### C. Test conditions individually
 
 ```autoit
 Func CanUse_Skill()
-    ; Test each condition and log
     If UAI_GetPlayerInfo($GC_UAI_AGENT_HP) > 0.80 Then
-        Out("CanUse_Skill : FAILED - HP too high (" &
-            UAI_GetPlayerInfo($GC_UAI_AGENT_HP) & ")")
+        _D("CanUse_Skill : FAILED - HP too high (" & UAI_GetPlayerInfo($GC_UAI_AGENT_HP) & ")")
         Return False
     EndIf
 
     If UAI_PlayerHasEffect($GC_I_SKILL_ID_IGNORANCE) Then
-        Out("CanUse_Skill : FAILED - Under Ignorance")
+        _D("CanUse_Skill : FAILED - Under Ignorance")
         Return False
     EndIf
 
-    Out("CanUse_Skill : SUCCESS")
+    _D("CanUse_Skill : SUCCESS")
     Return True
 EndFunc
 ```
@@ -1613,14 +1718,14 @@ EndFunc
 
 ## CONCLUSION
 
-The **SmartCast** system is a flexible and powerful framework for automating Guild Wars gameplay.
+The **UtilityAI** system is a flexible and powerful framework for automating Guild Wars gameplay.
 
 ### Key Takeaways:
 
 1. **Modular architecture**: Each skill has its own targeting and condition functions
 2. **UAI Cache System**: Centralized caching for optimal performance
    - `UAI_UpdateAgentCache()` - Agent data
-   - `UAI_CacheSkillBar()` - Static skill data
+   - `Cache_SkillBar()` - Static skill data + dispatch caches + weapon sets (once per explorable area)
    - `UAI_UpdateDynamicSkillbarCache()` - Dynamic skill data
    - `UAI_UpdateEffectsCache()` - Effects, Bonds, Visible Effects
 3. **Resource management**: Sophisticated system that accounts for all modifiers
@@ -1629,14 +1734,14 @@ The **SmartCast** system is a flexible and powerful framework for automating Gui
 
 ### UAI Cache Quick Reference:
 
-| Cache | Update Function | Access Functions |
-|-------|----------------|------------------|
-| Agent | `UAI_UpdateAgentCache()` | `UAI_GetPlayerInfo()`, `UAI_GetAgentInfoByID()` |
-| Static Skill | `UAI_CacheSkillBar()` | `UAI_GetStaticSkillInfo()` |
-| Dynamic Skill | `UAI_UpdateDynamicSkillbarCache()` | `UAI_GetDynamicSkillInfo()` |
-| Effects | `UAI_UpdateEffectsCache()` | `UAI_PlayerHasEffect()`, `UAI_AgentHasEffect()` |
-| Bonds | (via Effects) | `UAI_PlayerUpkeepsBond()`, `UAI_AgentUpkeepsBond()` |
-| Visible Effects | (via Effects) | `UAI_PlayerHasVisibleEffect()`, `UAI_AgentHasVisibleEffect()` |
+| Cache           | Update Function                    | Access Functions                                              |
+| --------------- | ---------------------------------- | ------------------------------------------------------------- |
+| Agent           | `UAI_UpdateAgentCache()`           | `UAI_GetPlayerInfo()`, `UAI_GetAgentInfoByID()`               |
+| Static Skill    | `Cache_SkillBar()`                 | `UAI_GetStaticSkillInfo()`                                    |
+| Dynamic Skill   | `UAI_UpdateDynamicSkillbarCache()` | `UAI_GetDynamicSkillInfo()`                                   |
+| Effects         | `UAI_UpdateEffectsCache()`         | `UAI_PlayerHasEffect()`, `UAI_AgentHasEffect()`               |
+| Bonds           | (via Effects)                      | `UAI_PlayerUpkeepsBond()`, `UAI_AgentUpkeepsBond()`           |
+| Visible Effects | (via Effects)                      | `UAI_PlayerHasVisibleEffect()`, `UAI_AgentHasVisibleEffect()` |
 
 ### Going Further:
 
@@ -1650,6 +1755,6 @@ The **SmartCast** system is a flexible and powerful framework for automating Gui
 
 ---
 
-*Documentation created by Greg-76 (Alusion)*
-*Version 2.0 - Updated with UAI Cache System*
-*For questions or improvements: [GitHub](https://github.com/JAG-GW/GwAu3)*
+_Documentation created by Greg-76 (Alusion)_
+_Version 2.0 - Updated with UAI Cache System_
+_For questions or improvements: [GitHub](https://github.com/JAG-GW/GwAu3)_
