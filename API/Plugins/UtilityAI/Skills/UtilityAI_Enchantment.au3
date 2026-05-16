@@ -2427,6 +2427,7 @@ EndFunc
 ; Skill ID: 1510 - $GC_I_SKILL_ID_SAND_SHARDS
 Func CanUse_SandShards()
 	If Anti_Enchantment() Then Return False
+	If UAI_PlayerHasEffect($GC_I_SKILL_ID_SAND_SHARDS) Then Return False
 	If UAI_CountAgents(-2, $GC_I_RANGE_ADJACENT, "UAI_Filter_IsLivingEnemy") <= 1 Then Return False
 	Return True
 EndFunc
@@ -2863,14 +2864,11 @@ EndFunc
 ; Skill ID: 1759 - $GC_I_SKILL_ID_VOW_OF_STRENGTH
 Func CanUse_VowOfStrength()
 	If Anti_Enchantment() Then Return False
-
-	Local $l_b_SkillSlot = Skill_GetSlotByID($GC_I_SKILL_ID_EXTEND_ENCHANTMENTS)
-	Local $l_b_HasEffect = UAI_GetPlayerEffectInfo($GC_I_SKILL_ID_EXTEND_ENCHANTMENTS, $GC_UAI_EFFECT_TimeRemaining) > 500
-
-	If $l_b_SkillSlot > 0 Then
-		If Not $l_b_HasEffect Then
-			Skill_UseSkill($l_b_SkillSlot)
-		EndIf
+	If UAI_PlayerHasEffect($GC_I_SKILL_ID_VOW_OF_STRENGTH) Then Return False
+	; If Extend Enchantments is in the bar and not currently active, wait for it (it will cast first via slot order)
+	Local $l_i_ExtendSlot = Skill_GetSlotByID($GC_I_SKILL_ID_EXTEND_ENCHANTMENTS)
+	If $l_i_ExtendSlot > 0 Then
+		If Not UAI_PlayerHasEffect($GC_I_SKILL_ID_EXTEND_ENCHANTMENTS) Then Return False
 	EndIf
 	Return True
 EndFunc

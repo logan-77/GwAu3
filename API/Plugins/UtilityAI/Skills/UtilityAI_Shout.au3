@@ -839,6 +839,7 @@ EndFunc
 
 Func CanUse_DodgeThis()
 	If Anti_Shout() Then Return False
+	If UAI_PlayerHasEffect($GC_I_SKILL_ID_DODGE_THIS) Then Return False
 	Return True
 EndFunc
 
@@ -852,6 +853,7 @@ EndFunc
 
 Func CanUse_IAmTheStrongest()
 	If Anti_Shout() Then Return False
+	If UAI_PlayerHasEffect($GC_I_SKILL_ID_I_AM_THE_STRONGEST) Then Return False
 	Return True
 EndFunc
 

@@ -2052,7 +2052,7 @@ Func BestTarget_VictoriousSweep($a_f_AggroRange)
 	; Melee Attack. If this attack hits, you deal +5...21...25 damage. If target foe has less Health than you, you gain 30...70...80 Health.
 	; Concise description
 	; Melee Attack. Deals +5...21...25 damage. You gain 30...70...80 Health for each foe you hit that has less Health than you.
-	Return UAI_GetNearestAgent(-2, $a_f_AggroRange, "UAI_Filter_IsLivingEnemy")
+	Return UAI_GetBestAOETarget(-2, $a_f_AggroRange, $GC_I_RANGE_ADJACENT, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 1489 - $GC_I_SKILL_ID_IRRESISTIBLE_SWEEP
@@ -2858,7 +2858,7 @@ Func BestTarget_ZealousSweep($a_f_AggroRange)
 	; Scythe Attack. If this attack hits, you deal +5...17...20 damage. You gain 3 Energy and 1 adrenaline for each foe you hit.
 	; Concise description
 	; Scythe Attack. Deals +5...17...20 damage. You gain 3 Energy and 1 adrenaline for each foe you hit.
-	Return 0
+	Return UAI_GetBestAOETarget(-2, $a_f_AggroRange, $GC_I_RANGE_ADJACENT, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 2074 - $GC_I_SKILL_ID_CHEST_THUMPER
@@ -2906,7 +2906,7 @@ Func BestTarget_WhirlwindAttack($a_f_AggroRange)
 	; This article is about the Nightfall skill. For the temporarily available Bonus Mission Pack skill, see Whirlwind Attack (Turai Ossa).
 	; Concise description
 	; green; font-weight: bold;">13...20
-	Return 0
+	Return UAI_GetBestAOETarget(-2, $a_f_AggroRange, $GC_I_RANGE_ADJACENT, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 2111 - $GC_I_SKILL_ID_VAMPIRISM_ATTACK
