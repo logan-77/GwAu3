@@ -5398,9 +5398,9 @@ Func BestTarget_Aneurysm($a_f_AggroRange)
 	; Concise description
 	; Spell. Target foe regains all Energy. For each point of Energy gained, target takes 1...3...3 damage and all adjacent foes lose 1 Energy (maximum 1...24...30).
 	; Target: Highest energy caster (maximize damage)
-	Local $l_i_Target = UAI_GetAgentHighest(-2, $a_f_AggroRange, $GC_UAI_AGENT_Energy, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsCaster")
+	Local $l_i_Target = UAI_GetAgentHighest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy|UAI_Filter_IsCaster")
 	If $l_i_Target <> 0 Then Return $l_i_Target
-	Return UAI_GetAgentHighest(-2, $a_f_AggroRange, $GC_UAI_AGENT_Energy, "UAI_Filter_IsLivingEnemy")
+	Return UAI_GetAgentHighest(-2, $a_f_AggroRange, $GC_UAI_AGENT_HP, "UAI_Filter_IsLivingEnemy")
 EndFunc
 
 ; Skill ID: 2057 - $GC_I_SKILL_ID_FOUL_FEAST
