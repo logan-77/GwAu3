@@ -185,7 +185,7 @@ Global $g_as2_AxeUpgrade[30][3] = [ _
 	["Axe Grip of Undead slaying",		"+ 20% (vs Undead)",					"001448A2"]]
 Global $g_as2_HammerUpgrade[27][3] = [ _
 	["Cruel",							"Deep Wound +33%",						"E2016824"], _
-	["Heavy",							"Weakness +33%", 						"E601824"], _
+	["Heavy",							"Weakness +33%", 						"E6016824"], _
 	["Ebon",							"Earth damage",							"000BB824"], _
 	["Fiery",							"Fire damage", 							"0005B824"], _
 	["Icy",								"Cold damage",							"0003B824"], _
@@ -245,7 +245,7 @@ Global $g_as2_DaggerUpgrade[20][3] = [ _
 	["Barbed",							"Bleeding +33%", 						"DE016824"], _
 	["Cruel",							"Deep Wound +33%",						"E2016824"], _
 	["Crippling",						"Crippled +33%",						"E1016824"], _
-	["Heavy",							"Weakness +33%", 						"E601824"], _
+	["Heavy",							"Weakness +33%", 						"E6016824"], _
 	["Poisonous",						"Poison +33%", 							"E4016824"], _
 	["Silencing",						"Dazed +33%", 							"E5016824"], _
 	["Ebon",							"Earth damage",							"000BB824"], _
@@ -266,7 +266,7 @@ Global $g_as2_ScytheUpgrade[19][3] = [ _
 	["Barbed",							"Bleeding +33%", 						"DE016824"], _
 	["Cruel",							"Deep Wound +33%",						"E2016824"], _
 	["Crippling",						"Crippled +33%",						"E1016824"], _
-	["Heavy",							"Weakness +33%", 						"E601824"], _
+	["Heavy",							"Weakness +33%", 						"E6016824"], _
 	["Poisonous",						"Poison +33%", 							"E4016824"], _
 	["Ebon",							"Earth damage",							"000BB824"], _
 	["Fiery",							"Fire damage", 							"0005B824"], _
@@ -316,7 +316,7 @@ Global $g_as2_SpearUpgrade[20][3] = [ _
 	["Barbed",							"Bleeding +33%", 						"DE016824"], _
 	["Cruel",							"Deep Wound +33%",						"E2016824"], _
 	["Crippling",						"Crippled +33%",						"E1016824"], _
-	["Heavy",							"Weakness +33%", 						"E601824"], _
+	["Heavy",							"Weakness +33%", 						"E6016824"], _
 	["Poisonous",						"Poison +33%", 							"E4016824"], _
 	["Silencing",						"Dazed +33%", 							"E5016824"], _
 	["Ebon",							"Earth damage",							"000BB824"], _
