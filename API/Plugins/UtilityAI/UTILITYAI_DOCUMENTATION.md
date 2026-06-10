@@ -51,7 +51,7 @@ Cache_SkillBar()  ; picks up any build changes from the previous outpost
 ```autoit
 ; Method 1: Full combat loop (recommended)
 ; Fights until all enemies are dead or an exit condition is met
-UAI_Fight($x, $y, $aggroRange, $maxDistance, $fightMode, $useSwitchSet, $playerNumber, $killOnly, $exitCallback)
+UAI_Fight($x, $y, $aggroRange, $maxDistance, $fightMode, $useSwitchSet, $playerNumber, $killOnly, $exitCallback, $callTargetMode)
 
 ; Method 2: Single skill cycle
 ; Use in your own loop for more control
@@ -60,17 +60,25 @@ UAI_UseSkills($x, $y, $aggroRange, $maxDistance)
 
 ### UAI_Fight() Parameters
 
-| Parameter              | Default             | Description                                                                                            |
-| ---------------------- | ------------------- | ------------------------------------------------------------------------------------------------------ |
-| `$a_f_X`               | required            | X coordinate of combat center                                                                          |
-| `$a_f_Y`               | required            | Y coordinate of combat center                                                                          |
-| `$a_f_AggroRange`      | 1320                | Maximum distance to engage enemies                                                                     |
-| `$a_f_MaxDistanceToXY` | 3500                | Max distance before exiting combat                                                                     |
-| `$a_i_FightMode`       | `$g_i_FinisherMode` | Combat mode (see below)                                                                                |
-| `$a_b_UseSwitchSet`    | `False`             | Enable automatic weapon set switching (sets `$g_b_CacheWeaponSet`)                                     |
-| `$a_v_PlayerNumber`    | `0`                 | Priority target (positive) or target to avoid (negative). Accepts a single value or an array.          |
-| `$a_b_KillOnly`        | `False`             | If `True` and a priority target is set, exits if that target is not found or already dead              |
-| `$a_s_ExitCallback`    | `""`                | Name of a callback function (string) called each iteration — exits the fight loop if it returns `True` |
+| Parameter              | Default                    | Description                                                                                            |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `$a_f_X`               | required                   | X coordinate of combat center                                                                          |
+| `$a_f_Y`               | required                   | Y coordinate of combat center                                                                          |
+| `$a_f_AggroRange`      | 1320                       | Maximum distance to engage enemies                                                                     |
+| `$a_f_MaxDistanceToXY` | 3500                       | Max distance before exiting combat                                                                     |
+| `$a_i_FightMode`       | `$g_i_FinisherMode`        | Combat mode (see below)                                                                                |
+| `$a_b_UseSwitchSet`    | `False`                    | Enable automatic weapon set switching                                                                  |
+| `$a_v_PlayerNumber`    | `0`                        | Priority target (positive) or target to avoid (negative). Accepts a single value or an array.          |
+| `$a_b_KillOnly`        | `False`                    | If `True` and a priority target is set, exits if that target is not found or already dead              |
+| `$a_s_ExitCallback`    | `""`                       | Name of a callback function (string) called each iteration — exits the fight loop if it returns `True` |
+| `$a_i_CallTargetMode`  | `$GC_UAI_CALLTARGET_CALL`  | `$GC_UAI_CALLTARGET_CALL` (default) or `$GC_UAI_CALLTARGET_FOLLOW` (see below)                        |
+
+### Call Target Modes
+
+| Constant                    | Value | Description                                                                                                                       |
+| --------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `$GC_UAI_CALLTARGET_CALL`   | 0     | Bot picks its own target and calls it to party via `Agent_CallTarget` (default)                                                   |
+| `$GC_UAI_CALLTARGET_FOLLOW` | 1     | Bot follows the called target of the first non-self party player (`CalledTargetID`) — overrides `$g_i_ForceTarget` each iteration, does not call |
 
 ### Combat Modes
 
@@ -327,7 +335,8 @@ Global $g_a_VisEffectsCache[1][1][1]      ; 3D array [AgentIndex][VisEffectIndex
 ```autoit
 Func UAI_Fight($a_f_X, $a_f_Y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, _
                $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, _
-               $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "")
+               $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "", _
+               $a_i_CallTargetMode = $GC_UAI_CALLTARGET_CALL)
 ```
 
 **Parameters:**
@@ -336,10 +345,11 @@ Func UAI_Fight($a_f_X, $a_f_Y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 35
 - `$a_f_AggroRange` : Maximum aggro distance (default: 1320)
 - `$a_f_MaxDistanceToXY` : Max distance before leaving combat (default: 3500)
 - `$a_i_FightMode` : Combat mode — `$g_i_FinisherMode` (0) or `$g_i_PressureMode` (1)
-- `$a_b_UseSwitchSet` : Enable automatic weapon set switching (sets `$g_b_CacheWeaponSet`)
+- `$a_b_UseSwitchSet` : Enable automatic weapon set switching
 - `$a_v_PlayerNumber` : Priority target (positive) or target to avoid (negative); single value or array
 - `$a_b_KillOnly` : If `True` and a priority target is set, exits when that target dies or is not found
 - `$a_s_ExitCallback` : Name of a callback function (string) — exits the loop if it returns `True`
+- `$a_i_CallTargetMode` : `$GC_UAI_CALLTARGET_CALL` (default), `$GC_UAI_CALLTARGET_NONE`, or `$GC_UAI_CALLTARGET_FOLLOW`
 
 **Operation:**
 

@@ -105,6 +105,18 @@ Func UAI_GetNearestEnemyInPartyRange($a_f_AggroRange = 1320)
     Return $l_i_BestEnemy
 EndFunc
 
+; Returns the CalledTargetID of the first non-self player in the party, or 0 if none
+Func UAI_GetPartyCalledTarget()
+	Local $l_i_PlayerCount = Party_GetMyPartyInfo("ArrayPlayerPartyMemberSize")
+	Local $l_i_MyLoginNumber = Agent_GetAgentInfo(-2, "LoginNumber")
+	For $i = 1 To $l_i_PlayerCount
+		If Party_GetMyPartyPlayerMemberInfo($i, "LoginNumber") = $l_i_MyLoginNumber Then ContinueLoop
+		Local $l_i_CalledTarget = Party_GetMyPartyPlayerMemberInfo($i, "CalledTargetID")
+		If $l_i_CalledTarget <> 0 Then Return $l_i_CalledTarget
+	Next
+	Return 0
+EndFunc
+
 ; Get the current party size
 Func Party_GetSize()
 	Return Party_GetPartyContextInfo("TotalPartySize")

@@ -1,15 +1,11 @@
 #include-once
 
-;~ UAI_Fight($x, $y)                                    			; Normal fight
-;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, 1234)    			; Kill priority 1234
-;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, -1234)   			; Avoid 1234
-;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, [1234, -5678])  		; Priority 1234 + Avoid 5678
-;~ UAI_Fight($x, $y, 1320, 3500, $mode, False, [1234, -5678], True) ; Same + KillOnly
-Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "")
+Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "", $a_i_CallTargetMode = $GC_UAI_CALLTARGET_CALL)
 	$g_i_BestTarget = 0
 	$g_i_ForceTarget = 0
 	$g_i_FightMode = $a_i_FightMode
 	$g_b_CacheWeaponSet = $a_b_UseSwitchSet
+	$g_i_CallTargetMode = $a_i_CallTargetMode
 	$g_v_AvoidPlayerNumbers = -1
 
 	Local $l_i_MyOldMap = Map_GetMapID(), $l_i_MapLoadingOld = Map_GetInstanceInfo("Type")
@@ -58,6 +54,10 @@ Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 35
 			$g_i_ForceTarget = UAI_FindAgentByPlayerNumber($l_v_PriorityTargets, -2, $a_f_AggroRange, "UAI_Filter_IsLivingEnemy")
 			If $g_i_ForceTarget = 0 And $a_b_KillOnly Then ExitLoop
 		EndIf
+		If $g_i_CallTargetMode = $GC_UAI_CALLTARGET_FOLLOW Then
+			Local $l_i_FollowTarget = UAI_GetPartyCalledTarget()
+			If $l_i_FollowTarget <> 0 Then $g_i_ForceTarget = $l_i_FollowTarget
+		EndIf
 		UAI_UseSkills($a_f_x, $a_f_y, $a_f_AggroRange, $a_f_MaxDistanceToXY)
 		Sleep(128)
 	Until UAI_CountEnemyInPartyAggroRange($a_f_AggroRange) = 0 Or Agent_GetAgentInfo(-2, "IsDead") Or Party_IsWiped() Or Map_GetMapID() <> $l_i_MyOldMap Or Map_GetInstanceInfo("Type") <> $l_i_MapLoadingOld Or ($a_s_ExitCallback <> "" And Call($a_s_ExitCallback))
@@ -69,7 +69,7 @@ Func UAI_UseSkills($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY 
 	For $i = 1 To 6
 		Local $l_i_Slot = $i
 
-		if $l_i_Slot = 6 Then
+		If $l_i_Slot = 6 Then
 			$l_i_Slot = $ls_i_LowPrioSkill
 			$ls_i_LowPrioSkill += 1
 			If $ls_i_LowPrioSkill > 8 Then $ls_i_LowPrioSkill = 6
@@ -161,7 +161,7 @@ Func UAI_UseSkillEX($a_i_SkillSlot, $a_i_AgentID = -2)
 	If $g_b_CacheWeaponSet Then UAI_GetBestWeaponSetBySkillSlot($a_i_SkillSlot)
 
 	If $a_i_AgentID <> Agent_GetMyID() And $a_i_AgentID <> $g_i_LastCalledTarget Then
-		If $g_b_CallTarget Then Agent_CallTarget($a_i_AgentID)
+		If $g_i_CallTargetMode = $GC_UAI_CALLTARGET_CALL Then Agent_CallTarget($a_i_AgentID)
 		$g_i_LastCalledTarget = $a_i_AgentID
 	EndIf
 
@@ -173,7 +173,7 @@ Func UAI_UseSkillEX($a_i_SkillSlot, $a_i_AgentID = -2)
 	Local $l_i_Special = UAI_GetStaticSkillInfo($a_i_SkillSlot, $GC_UAI_STATIC_SKILL_Special)
 	Local $l_i_WeaponReq = UAI_GetStaticSkillInfo($a_i_SkillSlot, $GC_UAI_STATIC_SKILL_WeaponReq)
 	If ($l_i_Skilltype = $GC_I_SKILL_TYPE_ATTACK And Not $l_i_WeaponReq = $GC_I_SKILL_REQUIRE_BOW And Not $GC_I_SKILL_REQUIRE_SPEAR) _
-		Or $l_i_Skilltype = $GC_I_SKILL_TYPE_SKILL2 Or $l_i_Skilltype = $GC_I_SKILL_TYPE_SKILL Or $l_i_Special = $GC_I_SKILL_SPECIAL_FLAG_TOUCH Then
+			Or $l_i_Skilltype = $GC_I_SKILL_TYPE_SKILL2 Or $l_i_Skilltype = $GC_I_SKILL_TYPE_SKILL Or $l_i_Special = $GC_I_SKILL_SPECIAL_FLAG_TOUCH Then
 		Local $l_h_WaitStart = TimerInit()
 		Sleep(128)
 		Do
@@ -206,7 +206,7 @@ Func UAI_PrioritySkills($a_f_AggroRange = 1320)
 
 	; Priority Effect2 flags (from $GC_UAI_STATIC_SKILL_Effect2)
 	Local $l_ai_PriorityEffect2Flags[] = [$GC_I_SKILL_EFFECT2_ENERGY_STEAL, $GC_I_SKILL_EFFECT2_ENERGY_GAIN, _
-										  $GC_I_SKILL_EFFECT2_HEX_REMOVAL, $GC_I_SKILL_EFFECT2_CONDITION_REMOVAL]
+			$GC_I_SKILL_EFFECT2_HEX_REMOVAL, $GC_I_SKILL_EFFECT2_CONDITION_REMOVAL]
 
 	; Priority Skill Type (from $GC_UAI_STATIC_SKILL_SkillType)
 	Local $l_ai_PrioritySkillType[] = [$GC_I_SKILL_TYPE_WELL, $GC_I_SKILL_TYPE_GLYPH, $GC_I_SKILL_TYPE_PREPARATION, $GC_I_SKILL_TYPE_ITEM_SPELL]
@@ -242,7 +242,7 @@ Func UAI_PrioritySkills($a_f_AggroRange = 1320)
 			EndIf
 		Next
 	Next
-EndFunc
+EndFunc   ;==>UAI_PrioritySkills
 
 Func UAI_CastPrioritySkill($a_i_Slot, $a_f_AggroRange = 1320)
 	If UAI_CanCast($a_i_Slot) Then
@@ -261,7 +261,7 @@ Func UAI_CastPrioritySkill($a_i_Slot, $a_f_AggroRange = 1320)
 			UAI_UpdateCache($a_f_AggroRange)
 		EndIf
 	EndIf
-EndFunc
+EndFunc   ;==>UAI_CastPrioritySkill
 
 ; Drop bundle if player has Item Spell effect and can cast (skill is recharged)
 Func UAI_DropBundle($a_f_AggroRange = 1320)
@@ -301,4 +301,4 @@ Func UAI_DropBundle($a_f_AggroRange = 1320)
 			Return
 		EndIf
 	Next
-EndFunc
+EndFunc   ;==>UAI_DropBundle
