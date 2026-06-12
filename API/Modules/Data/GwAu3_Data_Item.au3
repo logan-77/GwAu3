@@ -18,12 +18,53 @@ Func Item_GetInventoryInfo($a_s_Info = "")
     If $l_p_Ptr = 0 Or $a_s_Info = "" Then Return 0
 
     Switch $a_s_Info
-        Case "GoldCharacter"
-            Return Memory_Read($l_p_Ptr + 0x90, "long")
-        Case "GoldStorage"
-            Return Memory_Read($l_p_Ptr + 0x94, "long")
-        Case "ActiveWeaponSet"
-            Return Memory_Read($l_p_Ptr + 0x84, "long")
+        
+        Case "BackpackPtr", "Backpack"
+            Return Memory_Read($l_p_Ptr + 0x04, "ptr")
+        Case "BeltPouchPtr", "BeltPouch"
+            Return Memory_Read($l_p_Ptr + 0x08, "ptr")
+        Case "Bag1Ptr", "Bag1"
+            Return Memory_Read($l_p_Ptr + 0x0C, "ptr")
+        Case "Bag2Ptr", "Bag2"
+            Return Memory_Read($l_p_Ptr + 0x10, "ptr")
+
+        Case "EquipmentPackPtr", "EquipmentPack"
+            Return Memory_Read($l_p_Ptr + 0x14, "ptr")
+        Case "MaterialStoragePtr", "MaterialStorage"
+            Return Memory_Read($l_p_Ptr + 0x18, "ptr")
+        Case "UnclaimedItemsPtr", "UnclaimedItems"
+            Return Memory_Read($l_p_Ptr + 0x1C, "ptr")
+
+        Case "Storage1Ptr", "Storage1"
+            Return Memory_Read($l_p_Ptr + 0x20, "ptr")
+        Case "Storage2Ptr", "Storage2"
+            Return Memory_Read($l_p_Ptr + 0x24, "ptr")
+        Case "Storage3Ptr", "Storage3"
+            Return Memory_Read($l_p_Ptr + 0x28, "ptr")
+        Case "Storage4Ptr", "Storage4"
+            Return Memory_Read($l_p_Ptr + 0x2C, "ptr")
+        Case "Storage5Ptr", "Storage5"
+            Return Memory_Read($l_p_Ptr + 0x30, "ptr")
+        Case "Storage6Ptr", "Storage6"
+            Return Memory_Read($l_p_Ptr + 0x34, "ptr")
+        Case "Storage7Ptr", "Storage7"
+            Return Memory_Read($l_p_Ptr + 0x38, "ptr")
+        Case "Storage8Ptr", "Storage8"
+            Return Memory_Read($l_p_Ptr + 0x3C, "ptr")
+        Case "Storage9Ptr", "Storage9"
+            Return Memory_Read($l_p_Ptr + 0x40, "ptr")
+        Case "Storage10Ptr", "Storage10"
+            Return Memory_Read($l_p_Ptr + 0x44, "ptr")
+        Case "Storage11Ptr", "Storage11"
+            Return Memory_Read($l_p_Ptr + 0x48, "ptr")
+        Case "Storage12Ptr", "Storage12"
+            Return Memory_Read($l_p_Ptr + 0x4C, "ptr")
+        Case "Storage13Ptr", "Storage13"
+            Return Memory_Read($l_p_Ptr + 0x50, "ptr")
+        Case "Storage14Ptr", "Storage14"
+            Return Memory_Read($l_p_Ptr + 0x54, "ptr")
+        Case "EquippedItemsPtr", "EquippedItems"
+            Return Memory_Read($l_p_Ptr + 0x58, "ptr")        
 
         Case "BundlePtr" ;<-- Item struct
             Return Memory_Read($l_p_Ptr + 0x5C, "ptr")
@@ -105,6 +146,14 @@ Func Item_GetInventoryInfo($a_s_Info = "")
             Return Memory_Read(Memory_Read($l_p_Ptr + 0x80, "ptr") + 0x4, "dword")
         Case "WeaponSet3OffhandModelID"
             Return Memory_Read(Memory_Read($l_p_Ptr + 0x80, "ptr") + 0x2C, "dword")
+
+        Case "ActiveWeaponSet"
+            Return Memory_Read($l_p_Ptr + 0x84, "long")
+        Case "GoldCharacter"
+            Return Memory_Read($l_p_Ptr + 0x90, "long")
+        Case "GoldStorage"
+            Return Memory_Read($l_p_Ptr + 0x94, "long")
+        
     EndSwitch
 
     Return 0
