@@ -645,7 +645,7 @@ Func Scanner_ScanForProcess()
 EndFunc
 
 Func Scanner_ScanForCharname()
-    Local $l_s_CharNameCode = BinaryToString('0x6A14FF751868')
+    Local $l_s_CharNameCode = BinaryToString('0x6A145668')
     Local $l_p_CurrentSearchAddress = 0x00000000
     Local $l_ai_MBI[7], $l_d_MBIBuffer = DllStructCreate('dword;dword;dword;dword;dword;dword;dword')
     Local $l_i_Search, $l_s_TmpMemData, $l_p_TmpAddress, $l_d_TmpBuffer = DllStructCreate('ptr'), $l_i_Idx
@@ -666,7 +666,7 @@ Func Scanner_ScanForCharname()
             $l_i_Search = StringInStr($l_s_TmpMemData, $l_s_CharNameCode, 2)
             If $l_i_Search > 0 Then
                 $l_p_TmpAddress = $l_p_CurrentSearchAddress + $l_i_Search - 1
-                DllCall($g_h_Kernel32, 'int', 'ReadProcessMemory', 'int', $g_h_GWProcess, 'int', $l_p_TmpAddress + 6, 'ptr', DllStructGetPtr($l_d_TmpBuffer), 'int', DllStructGetSize($l_d_TmpBuffer), 'int', '')
+                DllCall($g_h_Kernel32, 'int', 'ReadProcessMemory', 'int', $g_h_GWProcess, 'int', $l_p_TmpAddress + 4, 'ptr', DllStructGetPtr($l_d_TmpBuffer), 'int', DllStructGetSize($l_d_TmpBuffer), 'int', '')
                 $g_p_CharName = DllStructGetData($l_d_TmpBuffer, 1)
                 Return Player_GetCharname()
             EndIf
