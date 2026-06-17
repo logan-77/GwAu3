@@ -11,8 +11,8 @@ Global $g_as_CanUseCache[9]
 Global $g_b_CanUseSkill = True
 Global $g_b_SkillChanged = False
 Global $g_b_CacheWeaponSet = False
-Global Enum $GC_UAI_CALLTARGET_CALL = 0, $GC_UAI_CALLTARGET_FOLLOW
-Global $g_i_CallTargetMode = $GC_UAI_CALLTARGET_CALL
+Global Enum $GC_UAI_TARGET_MODE_CALL = 0, $GC_UAI_TARGET_MODE_FOLLOW
+Global $g_i_TargetMode = $GC_UAI_TARGET_MODE_CALL
 
 ; Select your combat mode:
 ; Finisher = priorize lowest hp target

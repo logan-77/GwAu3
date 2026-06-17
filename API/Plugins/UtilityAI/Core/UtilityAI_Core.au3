@@ -1,12 +1,16 @@
 #include-once
 
-Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, $a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, $a_v_PlayerNumber = 0, $a_b_KillOnly = False, $a_s_ExitCallback = "", $a_i_CallTargetMode = $GC_UAI_CALLTARGET_CALL)
+Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 3500, _
+	$a_i_FightMode = $g_i_FinisherMode, $a_b_UseSwitchSet = False, _
+	$a_v_PlayerNumber = 0, $a_b_KillOnly = False, _
+	$a_s_ExitCallback = "", $a_i_CallTargetMode = $GC_UAI_TARGET_MODE_CALL)
+	
 	$g_i_BestTarget = 0
 	$g_i_ForceTarget = 0
 	$g_i_LastCalledTarget = 0
 	$g_i_FightMode = $a_i_FightMode
 	$g_b_CacheWeaponSet = $a_b_UseSwitchSet
-	$g_i_CallTargetMode = $a_i_CallTargetMode
+	$g_i_TargetMode = $a_i_CallTargetMode
 	$g_v_AvoidPlayerNumbers = -1
 
 	Local $l_i_MyOldMap = Map_GetMapID(), $l_i_MapLoadingOld = Map_GetInstanceInfo("Type")
@@ -55,7 +59,7 @@ Func UAI_Fight($a_f_x, $a_f_y, $a_f_AggroRange = 1320, $a_f_MaxDistanceToXY = 35
 			$g_i_ForceTarget = UAI_FindAgentByPlayerNumber($l_v_PriorityTargets, -2, $a_f_AggroRange, "UAI_Filter_IsLivingEnemy")
 			If $g_i_ForceTarget = 0 And $a_b_KillOnly Then ExitLoop
 		EndIf
-		If $g_i_CallTargetMode = $GC_UAI_CALLTARGET_FOLLOW Then
+		If $g_i_TargetMode = $GC_UAI_TARGET_MODE_FOLLOW Then
 			Local $l_i_FollowTarget = UAI_GetPartyCalledTarget()
 			If $l_i_FollowTarget <> 0 Then $g_i_ForceTarget = $l_i_FollowTarget
 		EndIf
@@ -176,7 +180,7 @@ Func UAI_UseSkillEx($a_i_SkillSlot, $a_i_AgentID = -2, $a_f_AggroRange = 1320)
 	If $a_i_AgentID <> $l_i_MyID Then Agent_ChangeTarget($a_i_AgentID)
 	If $g_b_CacheWeaponSet Then UAI_GetBestWeaponSetBySkillSlot($a_i_SkillSlot)
 
-	If $g_b_CallTarget Then
+	If $GC_UAI_TARGET_MODE_CALL Then
 		Local $l_i_Target = $a_i_AgentID
 		If $g_i_ForceTarget <> 0 Then $l_i_Target = $g_i_ForceTarget
 		If $l_i_Target <> 0 And $l_i_Target <> $l_i_MyID And $l_i_Target <> $g_i_LastCalledTarget Then
