@@ -180,7 +180,7 @@ Func UAI_UseSkillEx($a_i_SkillSlot, $a_i_AgentID = -2, $a_f_AggroRange = 1320)
 	If $a_i_AgentID <> $l_i_MyID Then Agent_ChangeTarget($a_i_AgentID)
 	If $g_b_CacheWeaponSet Then UAI_GetBestWeaponSetBySkillSlot($a_i_SkillSlot)
 
-	If $GC_UAI_TARGET_MODE_CALL Then
+	If $g_i_TargetMode = $GC_UAI_TARGET_MODE_CALL Then
 		Local $l_i_Target = $a_i_AgentID
 		If $g_i_ForceTarget <> 0 Then $l_i_Target = $g_i_ForceTarget
 		If $l_i_Target <> 0 And $l_i_Target <> $l_i_MyID And $l_i_Target <> $g_i_LastCalledTarget Then
