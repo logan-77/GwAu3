@@ -66,7 +66,7 @@ Core_Initialize("Character Name")
 
 ; Usage examples
 Local $l_i_MyID = Agent_GetMyID()
-Local $l_s_CharName = Player_GetCharname()
+Local $l_s_CharName = Player_GetCharName()
 Local $l_i_MapID = Map_GetCharacterInfo("MapID")
 
 ; Movement
@@ -113,7 +113,7 @@ The `config.ini` file in GwAu3\GwAu3\Core allows you to configure automatic upda
 
 ```ini
 [Update]
-Enabled=1      ;0 = Disable Automatic Updates
+Enabled=0      ;0 = Disabled, 1 = Enabled
 Verbose=1      ;0 = Silently update and delete, no prompts (Use at your own risk)
 Owner=JAG-GW
 Repo=GwAu3

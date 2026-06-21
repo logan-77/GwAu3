@@ -1,14 +1,16 @@
 #include-once
 
 Func Memory_Open($a_i_PID)
-    $g_h_Kernel32 = DllOpen('kernel32.dll')
-    Local $l_ai_OpenProcess = DllCall($g_h_Kernel32, 'int', 'OpenProcess', 'int', 0x1F0FFF, 'int', 1, 'int', $a_i_PID)
-    $g_h_GWProcess = $l_ai_OpenProcess[0]
+    $g_h_Kernel32 = DllOpen("kernel32.dll")
+    Local $l_av_OPRet = DllCall($g_h_Kernel32, "handle", "OpenProcess", "dword", 0x1F0FFF, "bool", True, "dword", $a_i_PID)    
+    $g_h_GWProcess = $l_av_OPRet[0]
+    $g_b_SectionsInitialized = False
 EndFunc
 
 Func Memory_Close()
-    DllCall($g_h_Kernel32, 'int', 'CloseHandle', 'int', $g_h_GWProcess)
+    DllCall($g_h_Kernel32, "bool", "CloseHandle", "handle", $g_h_GWProcess)
     DllClose($g_h_Kernel32)
+    $g_h_GWProcess = 0
 EndFunc
 
 Func Memory_WriteBinary($a_s_BinaryString, $a_p_Address)
